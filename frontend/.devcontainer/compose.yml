@@ -1,0 +1,15 @@
+services:
+  HomeBudgetAI:
+    image: mcr.microsoft.com/vscode/devcontainers/javascript-node:24-bullseye
+    init: true
+    command: /bin/sh -c "chown -R $UID:$GID /home/node/project/frontend/node_modules; while sleep 1000; do :; done"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../..:/home/node/project:cached
+      - ~/.ssh:/home/node/.ssh
+      - HomeBudgetAI-node-modules:/home/node/project/frontend/node_modules
+    working_dir: /home/node/project/frontend
+
+volumes:
+  HomeBudgetAI-node-modules:

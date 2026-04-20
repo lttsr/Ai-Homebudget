@@ -1,18 +1,21 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { AppCarrender } from "@/components/carrender/carrender";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { EllipsisVertical, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import { EllipsisVertical, FileText, Settings2 } from "lucide-react";
 import { DailyDetails } from "./DailyDetails";
 import { MonthlyDetails } from "./MonthlyDetails";
 import type { DailyHomeBudget } from "../types";
 import { useBudget } from "../hooks/use-budget";
 import { format } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Settings } from "./Settings";
 
 export const ManagementHome = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
@@ -22,6 +25,7 @@ export const ManagementHome = () => {
   const [dataList, setDataList] = useState<DailyHomeBudget[]>([]);
   const [monthlyDialogOpen, setMonthlyDialogOpen] = useState(false);
   const [monthlyYearMonth, setMonthlyYearMonth] = useState<string | null>(null);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const { findDailyHomeBudget } = useBudget();
 
   // 初期表示時 現在月の家計データ取得
@@ -64,6 +68,10 @@ export const ManagementHome = () => {
     }
   }, []);
 
+  const onSettingsDialogOpenChange = useCallback((open: boolean) => {
+    setSettingsDialogOpen(open);
+  }, []);
+
   const monthlyDialogTitleLabel = useMemo(() => {
     if (monthlyYearMonth == null) {
       return "月次入出金明細";
@@ -77,17 +85,62 @@ export const ManagementHome = () => {
 
   return (
     <div className="box-border flex h-full min-h-0 w-full flex-col p-3 sm:p-2">
-      <Card className="flex min-h-0 w-full flex-1 flex-col overflow-hidden shadow-sm">
-        <CardHeader className="flex shrink-0 border-b">
-          <div className="items-center mt-2">
-            <CardTitle>家計管理</CardTitle>
+      <Dialog open={monthlyDialogOpen} onOpenChange={onMonthlyDialogOpenChange}>
+        <DialogContent className="flex max-h-[min(88vh,860px)] w-[min(98vw,1280px)] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-hidden p-4 sm:max-w-[min(98vw,1280px)] sm:p-5 md:max-w-[min(98vw,1280px)] lg:max-w-[min(98vw,1280px)]">
+          <DialogHeader className="shrink-0">
+            <div className="flex items-center">
+              <FileText size={14} />
+              <span className="ml-1 font-bold">{monthlyDialogTitleLabel}</span>
+            </div>
+          </DialogHeader>
+          {monthlyYearMonth != null ? (
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-2 sm:px-5 sm:py-3">
+              <MonthlyDetails
+                open={monthlyDialogOpen}
+                yearMonth={monthlyYearMonth}
+              />
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={settingsDialogOpen}
+        onOpenChange={onSettingsDialogOpenChange}
+      >
+        <DialogContent className="flex max-h-[min(88vh,860px)] w-[min(98vw,1280px)] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-hidden p-4 sm:max-w-[min(98vw,1280px)] sm:p-5 md:max-w-[min(98vw,1280px)] lg:max-w-[min(98vw,1280px)]">
+          <DialogHeader className="shrink-0">
+            <div className="flex items-center">
+              <Settings2 size={14} />
+              <span className="ml-1 font-bold">設定</span>
+            </div>
+          </DialogHeader>
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-2 sm:px-5 sm:py-3">
+            <Settings />
           </div>
-          <div className="ml-auto">
-            <EllipsisVertical className="size-6" />
-          </div>
+        </DialogContent>
+      </Dialog>
+      <Card className="flex min-h-0 w-full flex-1 flex-col gap-0 overflow-hidden shadow-sm">
+        <CardHeader className="flex shrink-0 items-center justify-between border-b">
+          <CardTitle className="leading-none">家計管理</CardTitle>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              type="button"
+              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-label="メニュー"
+            >
+              <EllipsisVertical className="size-6" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-48">
+              <DropdownMenuLabel>共通</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setSettingsDialogOpen(true)}>
+                <Settings2 size={16} className="mr-2" />
+                設定
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </CardHeader>
-        <CardContent className="flex min-h-0 flex-1 flex-col">
-          <div className="grid min-h-0 w-full flex-1 grid-cols-1 gap-4 md:grid-cols-[2fr_3fr] md:items-stretch md:gap-5">
+        <CardContent className="flex min-h-0 flex-1 flex-col pb-3 pt-3">
+          <div className="grid min-h-0 w-full flex-1 grid-cols-1 gap-3 md:grid-cols-[2fr_3fr] md:gap-4">
             <div className="min-w-0">
               <AppCarrender
                 selected={selectedDate}
@@ -110,25 +163,6 @@ export const ManagementHome = () => {
           </div>
         </CardContent>
       </Card>
-      <Dialog open={monthlyDialogOpen} onOpenChange={onMonthlyDialogOpenChange}>
-        <DialogContent className="flex max-h-[min(88vh,860px)] w-[min(98vw,1280px)] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-hidden p-4 sm:max-w-[min(98vw,1280px)] sm:p-5 md:max-w-[min(98vw,1280px)] lg:max-w-[min(98vw,1280px)]">
-          <DialogTitle className="sr-only">{monthlyDialogTitleLabel}</DialogTitle>
-          <DialogHeader className="shrink-0">
-            <div className="flex items-center">
-              <FileText size={14} />
-              <span className="ml-1 font-bold">{monthlyDialogTitleLabel}</span>
-            </div>
-          </DialogHeader>
-          {monthlyYearMonth != null ? (
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-2 sm:px-5 sm:py-3">
-              <MonthlyDetails
-                open={monthlyDialogOpen}
-                yearMonth={monthlyYearMonth}
-              />
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

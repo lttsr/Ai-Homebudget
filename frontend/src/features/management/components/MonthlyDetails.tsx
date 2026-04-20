@@ -179,7 +179,7 @@ export function MonthlyDetails({
               <Card
                 key={date}
                 size="sm"
-                className="flex h-full min-h-0 flex-col gap-0 py-0 shadow-sm ring-border/60"
+                className="flex h-full min-h-0 flex-col gap-0 shadow-sm ring-border/60"
               >
                 <CardHeader className="border-b border-border/50 bg-muted/25 px-4">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">

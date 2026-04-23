@@ -33,30 +33,31 @@ export function AppCarrender({
   }, [budgetDataList]);
 
   const getDayAmount = useMemo(
-    () => (cellDate: Date): ReactNode => {
-      const row = budgetByDate.get(cellDateToRowDateKey(cellDate));
-      if (row == null) {
-        return undefined;
-      }
-      const { incomeTotal, expenseTotal } = row;
-      if (incomeTotal === 0 && expenseTotal === 0) {
-        return undefined;
-      }
-      return (
-        <span className="flex flex-col items-center justify-center gap-0.5 font-medium">
-          {incomeTotal > 0 ? (
-            <span className="text-emerald-600 dark:text-emerald-400">
-              +{incomeTotal.toLocaleString()}
-            </span>
-          ) : null}
-          {expenseTotal > 0 ? (
-            <span className="text-red-600 dark:text-red-400">
-              -{expenseTotal.toLocaleString()}
-            </span>
-          ) : null}
-        </span>
-      );
-    },
+    () =>
+      (cellDate: Date): ReactNode => {
+        const row = budgetByDate.get(cellDateToRowDateKey(cellDate));
+        if (row == null) {
+          return undefined;
+        }
+        const { incomeTotal, expenseTotal } = row;
+        if (incomeTotal === 0 && expenseTotal === 0) {
+          return undefined;
+        }
+        return (
+          <span className="flex flex-col items-center justify-center gap-0.5 font-medium">
+            {incomeTotal > 0 ? (
+              <span className="text-emerald-600 dark:text-emerald-400">
+                +{incomeTotal.toLocaleString()}
+              </span>
+            ) : null}
+            {expenseTotal > 0 ? (
+              <span className="text-red-600 dark:text-red-400">
+                -{expenseTotal.toLocaleString()}
+              </span>
+            ) : null}
+          </span>
+        );
+      },
     [budgetByDate],
   );
 

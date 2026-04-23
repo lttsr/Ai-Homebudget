@@ -7,9 +7,15 @@ export type DailyHomeBudget = {
 
 export type HomeBudgetDetail = {
   budgetId: number;
-  meisaiId: number;
-  category: string;
+  detailId: number;
+  categoryId: number;
   price: number;
   expensesFlg: boolean;
   memo?: string;
+};
+
+export type HomeBudgetCategory = {
+  categoryId: number;
+  name: string;
+  color: string;
 };

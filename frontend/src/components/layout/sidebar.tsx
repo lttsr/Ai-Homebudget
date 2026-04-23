@@ -128,7 +128,7 @@ export function AppSidebar({ children, layoutRoutes }: AppSidebarProps) {
           <p className="px-1 text-center text-[0.7rem] leading-relaxed text-sidebar-foreground/40">
             見える家計
             <br />
-            安心して使える
+            収支の分析・管理
           </p>
         </SidebarFooter>
       </Sidebar>

@@ -12,5 +12,10 @@ export const useBudget = () => {
     return await api.findHomeBudgetDetail(budgetId);
   }, []);
 
-  return { findDailyHomeBudget, findHomeBudgetDetail };
+  /** カテゴリデータを取得します。 */
+  const findCategory = useCallback(async () => {
+    return await api.findCategory();
+  }, []);
+
+  return { findDailyHomeBudget, findHomeBudgetDetail, findCategory };
 };

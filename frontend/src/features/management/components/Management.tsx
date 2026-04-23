@@ -43,8 +43,8 @@ export const ManagementHome = () => {
             <EllipsisVertical className="size-6" />
           </div>
         </CardHeader>
-        <CardContent className="flex min-h-0 flex-1 flex-col p-4 md:p-6">
-          <div className="grid min-h-0 w-full flex-1 grid-cols-1 gap-6 md:grid-cols-[2fr_3fr] md:items-stretch md:gap-8">
+        <CardContent className="flex min-h-0 flex-1 flex-col p-3 md:p-4">
+          <div className="grid min-h-0 w-full flex-1 grid-cols-1 gap-4 md:grid-cols-[2fr_3fr] md:items-stretch md:gap-5">
             <div className="min-w-0">
               <AppCarrender
                 selected={selectedDate}
@@ -55,10 +55,10 @@ export const ManagementHome = () => {
             <div
               className={selectedDate ? "min-w-0" : "min-w-0 hidden md:block"}
             >
-              {selectedBudget && (
+              {selectedDate != null && (
                 <HomeBudgetDetail
-                  key={selectedBudget.budgetId}
-                  budgetId={selectedBudget.budgetId}
+                  budgetId={selectedBudget?.budgetId}
+                  baseDate={format(selectedDate, "yyyy/MM/dd")}
                 />
               )}
             </div>

@@ -85,7 +85,7 @@ function Calendar({
       <DayPicker
         showOutsideDays={showOutsideDays}
         className={cn(
-          "group/calendar bg-background p-2 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(7)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent",
+          "group/calendar bg-background p-1 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(7)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent",
           String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
           String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
           className,
@@ -98,12 +98,12 @@ function Calendar({
           ...formatters,
         }}
         classNames={{
-          root: cn("w-fit", defaultClassNames.root),
+          root: cn("w-full min-w-0", defaultClassNames.root),
           months: cn(
-            "relative flex flex-col gap-4 md:flex-row",
+            "relative flex flex-col gap-2 md:flex-row",
             defaultClassNames.months,
           ),
-          month: cn("flex w-full flex-col gap-4", defaultClassNames.month),
+          month: cn("flex w-full flex-col gap-2", defaultClassNames.month),
           nav: cn(
             "absolute inset-x-0 top-0 flex w-full items-center justify-between gap-1",
             defaultClassNames.nav,
@@ -119,7 +119,7 @@ function Calendar({
             defaultClassNames.button_next,
           ),
           month_caption: cn(
-            "flex h-(--cell-size) w-full items-center justify-center px-(--cell-size)",
+            "flex h-(--cell-size) w-full items-center justify-center px-2",
             defaultClassNames.month_caption,
           ),
           dropdowns: cn(
@@ -147,7 +147,7 @@ function Calendar({
             "flex-1 border border-border/40 rounded-(--cell-radius) text-[0.8rem] font-normal text-muted-foreground select-none",
             defaultClassNames.weekday,
           ),
-          week: cn("mt-2 flex w-full", defaultClassNames.week),
+          week: cn("mt-1 flex w-full", defaultClassNames.week),
           week_number_header: cn(
             "w-(--cell-size) border border-border/40 select-none",
             defaultClassNames.week_number_header,
@@ -157,7 +157,7 @@ function Calendar({
             defaultClassNames.week_number,
           ),
           day: cn(
-            "group/day relative min-w-0 flex-1 aspect-[3/2] rounded-(--cell-radius) border border-border/40 p-0 text-center select-none [&:last-child[data-selected=true]_button]:rounded-r-(--cell-radius)",
+            "group/day relative min-w-0 flex-1 aspect-[3/3] rounded-(--cell-radius) border border-border/40 p-0 text-center select-none [&:last-child[data-selected=true]_button]:rounded-r-(--cell-radius)",
             props.showWeekNumber
               ? "[&:nth-child(2)[data-selected=true]_button]:rounded-l-(--cell-radius)"
               : "[&:first-child[data-selected=true]_button]:rounded-l-(--cell-radius)",
@@ -278,7 +278,7 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "relative isolate z-10 flex h-full! w-full! min-h-0 min-w-0 flex-col items-stretch justify-start gap-0 overflow-hidden border-0 p-1.5 text-left text-sm leading-none font-medium sm:text-base",
+        "relative isolate z-10 flex h-full! w-full! min-h-0 min-w-0 flex-col items-stretch justify-start gap-0 overflow-hidden border-0 p-1 text-left text-sm leading-none font-medium sm:text-base",
         "group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50",
         "data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-transparent data-[range-middle=true]:text-foreground data-[range-middle=true]:hover:bg-transparent!",
         "data-[selected-single=true]:bg-transparent data-[selected-single=true]:text-foreground data-[selected-single=true]:ring-2 data-[selected-single=true]:ring-inset data-[selected-single=true]:ring-primary/60 dark:data-[selected-single=true]:ring-primary/50",
@@ -303,7 +303,7 @@ function CalendarDayButton({
       {/** 家計: getDayAmount（収入・支出など） */}
       <div
         className={cn(
-          "flex min-h-0 flex-1 items-center justify-center px-0.5 text-center text-[0.65rem] leading-tight",
+          "flex min-h-0 flex-1 items-center justify-center px-0.5 text-center text-[0.8rem] leading-tight",
           day_amount != null && day_amount !== false ? "" : "opacity-40",
         )}
         data-slot="calendar-day-amount"

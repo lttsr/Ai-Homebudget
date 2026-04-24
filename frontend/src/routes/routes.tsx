@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AppSidebar } from "@/components/layout/sidebar";
-import { AskAI } from "@/features/ask/Ask-AI";
-import { ManagementHome } from "@/features/management/Management";
+import { AskAI } from "@/features/ask/components/Ask-AI";
+import { ManagementHome } from "@/features/management/components/Management";
 
 type RouteItem = {
   path: string;

@@ -1,17 +1,15 @@
 export type DailyHomeBudget = {
-  budgetId: string;
-  date: Date;
-  total: string;
+  budgetId: number;
+  date: string; // yyyy-MM-dd
+  incomeTotal: number;
+  expenseTotal: number;
 };
 
-export type HomeBudgetMeisai = {
-  budgetId: string;
-  meisaiId: string;
+export type HomeBudgetDetail = {
+  budgetId: number;
+  meisaiId: number;
   category: string;
-  price: string;
-  expensesFlg: number;
-  registerDate: string;
-  updateDate: string;
-  registerId: string;
-  updateId: string;
+  price: number;
+  expensesFlg: boolean;
+  memo?: string;
 };

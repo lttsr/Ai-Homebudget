@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { EllipsisVertical, FileText, Settings2 } from "lucide-react";
 import { DailyDetails } from "./DailyDetails";
+import { MonthlyCharts } from "./MonthlyCharts";
 import { MonthlyDetails } from "./MonthlyDetails";
 import type { DailyHomeBudget } from "../types";
 import { useBudget } from "../hooks/use-budget";
@@ -25,6 +26,8 @@ export const ManagementHome = () => {
   const [dataList, setDataList] = useState<DailyHomeBudget[]>([]);
   const [monthlyDialogOpen, setMonthlyDialogOpen] = useState(false);
   const [monthlyYearMonth, setMonthlyYearMonth] = useState<string | null>(null);
+  const [chartsDialogOpen, setChartsDialogOpen] = useState(false);
+  const [chartsYearMonth, setChartsYearMonth] = useState<string | null>(null);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const { findDailyHomeBudget } = useBudget();
 
@@ -65,6 +68,18 @@ export const ManagementHome = () => {
     setMonthlyDialogOpen(open);
     if (!open) {
       setMonthlyYearMonth(null);
+    }
+  }, []);
+
+  const onMonthGraphClick = useCallback((yearMonth: string) => {
+    setChartsYearMonth(yearMonth);
+    setChartsDialogOpen(true);
+  }, []);
+
+  const onChartsDialogOpenChange = useCallback((open: boolean) => {
+    setChartsDialogOpen(open);
+    if (!open) {
+      setChartsYearMonth(null);
     }
   }, []);
 
@@ -119,6 +134,11 @@ export const ManagementHome = () => {
           </div>
         </DialogContent>
       </Dialog>
+      <MonthlyCharts
+        open={chartsDialogOpen}
+        onOpenChange={onChartsDialogOpenChange}
+        yearMonth={chartsYearMonth}
+      />
       <Card className="flex min-h-0 w-full flex-1 flex-col gap-0 overflow-hidden shadow-sm">
         <CardHeader className="flex shrink-0 items-center justify-between border-b">
           <CardTitle className="leading-none">家計管理</CardTitle>
@@ -147,6 +167,7 @@ export const ManagementHome = () => {
                 onDayChange={onSelectDate}
                 onMonthChange={onMonthChange}
                 onMonthSummaryClick={onMonthSummaryClick}
+                onMonthGraphClick={onMonthGraphClick}
                 budgetDataList={dataList}
               />
             </div>

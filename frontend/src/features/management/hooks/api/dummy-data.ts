@@ -26,6 +26,9 @@ export const DUMMY_CATEGORY_MASTER: CategoryMst[] = [
   { categoryId: 5, name: "書籍", color: "#a855f7" },
   { categoryId: 6, name: "雑費", color: "#f97316" },
   { categoryId: 7, name: "通信費", color: "#06b6d4" },
+  { categoryId: 8, name: "前月度収支", color: "#64748b" },
+  { categoryId: 9, name: "家賃", color: "#ca8a04" },
+  { categoryId: 10, name: "クレジットカード決済", color: "#0ea5e9" },
 ];
 
 /** 決済／支払い口座ダミーマスタ */
@@ -293,19 +296,20 @@ export const DUMMY_HOME_BUDGET_DETAILS_MASTER: HomeBudgetDetail[] = [
   {
     budgetId: dummyBudgetId(2026, 5, 1),
     detailId: 1,
+    categoryId: 8,
+    accountId: 3,
+    price: 98000,
+    expensesFlg: false,
+    memo: "繰り越し",
+  },
+  {
+    budgetId: dummyBudgetId(2026, 5, 1),
+    detailId: 2,
     categoryId: 1,
     accountId: 2,
     price: 3280,
     expensesFlg: true,
     memo: "週末まとめ買い",
-  },
-  {
-    budgetId: dummyBudgetId(2026, 5, 1),
-    detailId: 2,
-    categoryId: 2,
-    accountId: 3,
-    price: 280000,
-    expensesFlg: false,
   },
   {
     budgetId: dummyBudgetId(2026, 5, 2),
@@ -384,6 +388,15 @@ export const DUMMY_HOME_BUDGET_DETAILS_MASTER: HomeBudgetDetail[] = [
     memo: "新幹線片道",
   },
   {
+    budgetId: dummyBudgetId(2026, 5, 10),
+    detailId: 2,
+    categoryId: 10,
+    accountId: 2,
+    price: 100000,
+    expensesFlg: true,
+    memo: "カード請求お支払い",
+  },
+  {
     budgetId: dummyBudgetId(2026, 5, 11),
     detailId: 1,
     categoryId: 2,
@@ -411,6 +424,15 @@ export const DUMMY_HOME_BUDGET_DETAILS_MASTER: HomeBudgetDetail[] = [
   {
     budgetId: dummyBudgetId(2026, 5, 15),
     detailId: 1,
+    categoryId: 2,
+    accountId: 3,
+    price: 300000,
+    expensesFlg: false,
+    memo: "給与",
+  },
+  {
+    budgetId: dummyBudgetId(2026, 5, 15),
+    detailId: 2,
     categoryId: 1,
     accountId: 4,
     price: 2670,
@@ -418,7 +440,7 @@ export const DUMMY_HOME_BUDGET_DETAILS_MASTER: HomeBudgetDetail[] = [
   },
   {
     budgetId: dummyBudgetId(2026, 5, 15),
-    detailId: 2,
+    detailId: 3,
     categoryId: 6,
     accountId: 1,
     price: 4500,
@@ -440,6 +462,15 @@ export const DUMMY_HOME_BUDGET_DETAILS_MASTER: HomeBudgetDetail[] = [
     accountId: 3,
     price: 1320,
     expensesFlg: true,
+  },
+  {
+    budgetId: dummyBudgetId(2026, 5, 20),
+    detailId: 2,
+    categoryId: 9,
+    accountId: 3,
+    price: 120000,
+    expensesFlg: true,
+    memo: "家賃（振込）",
   },
   {
     budgetId: dummyBudgetId(2026, 5, 22),
@@ -473,14 +504,6 @@ export const DUMMY_HOME_BUDGET_DETAILS_MASTER: HomeBudgetDetail[] = [
     accountId: 3,
     price: 6100,
     expensesFlg: true,
-  },
-  {
-    budgetId: dummyBudgetId(2026, 5, 28),
-    detailId: 2,
-    categoryId: 2,
-    accountId: 4,
-    price: 280000,
-    expensesFlg: false,
   },
 
   // --- 2026-06（他月サンプル）---

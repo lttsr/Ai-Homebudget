@@ -83,6 +83,7 @@ function Calendar({
   getDayAmount,
   monthSummary,
   onMonthSummaryClick,
+  onMonthGraphClick,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
@@ -90,6 +91,8 @@ function Calendar({
   monthSummary?: { incomeTotal: number; expenseTotal: number };
   /** 今月の収支サマリー押下時（yearMonth: yyyy-MM） */
   onMonthSummaryClick?: (yearMonth: string) => void;
+  /** カレンダー表示月の収支グラフを開く（yearMonth: yyyy-MM） */
+  onMonthGraphClick?: (yearMonth: string) => void;
 }) {
   const defaultClassNames = getDefaultClassNames();
 
@@ -294,9 +297,10 @@ function Calendar({
                         </div>
                       </>
                     );
-                    const shell = "mx-1 mb-1 overflow-hidden rounded-lg border text-left";
-                    if (onMonthSummaryClick != null) {
-                      return (
+                    const shell =
+                      "overflow-hidden rounded-lg border text-left";
+                    const summary_block =
+                      onMonthSummaryClick != null ? (
                         <button
                           type="button"
                           className={cn(
@@ -307,9 +311,25 @@ function Calendar({
                         >
                           {body}
                         </button>
+                      ) : (
+                        <div className={shell}>{body}</div>
                       );
-                    }
-                    return <div className={shell}>{body}</div>;
+                    return (
+                      <div className="mx-1 mb-1 flex flex-col gap-1.5">
+                        {summary_block}
+                        {onMonthGraphClick != null ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-full shrink-0 text-xs"
+                            onClick={() => onMonthGraphClick(year_month)}
+                          >
+                            グラフで表示
+                          </Button>
+                        ) : null}
+                      </div>
+                    );
                   })()}
                 {childArr.slice(1)}
               </div>

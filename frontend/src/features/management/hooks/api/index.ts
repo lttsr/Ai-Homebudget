@@ -1,8 +1,9 @@
 // import axios from "axios";
 import type {
   DailyHomeBudget,
+  AccountMst,
+  CategoryMst,
   HomeBudgetDetail,
-  HomeBudgetCategory,
   MonthlyBudgetDetailRow,
 } from "../../types";
 import {
@@ -10,6 +11,7 @@ import {
   dummyDailyHomeBudgets,
   dummyHomeBudgetDetail,
   dummyMonthlyHomeBudgetDetailRows,
+  dummyPaymentAccount,
 } from "./dummy-data";
 
 export const findDailyHomeBudget = async (
@@ -36,7 +38,7 @@ export const findHomeBudgetDetail = async (
   return dummyHomeBudgetDetail(budgetId);
 };
 
-export const findCategory = async (): Promise<HomeBudgetCategory[]> => {
+export const findCategory = async (): Promise<CategoryMst[]> => {
   // TODO: API
   // const response = await axios.get("/api/category", {
   // });
@@ -44,6 +46,14 @@ export const findCategory = async (): Promise<HomeBudgetCategory[]> => {
   await Promise.resolve();
   return dummyCategory();
 };
+
+/** 決済／支払い口座マスタを取得します。 */
+export const findPaymentAccount =
+  async (): Promise<AccountMst[]> => {
+    // TODO: API
+    await Promise.resolve();
+    return dummyPaymentAccount();
+  };
 
 /** 月次の全明細（日付昇順・実API接続時は params: { yearMonth } 想定） */
 export const findMonthlyHomeBudgetDetails = async (

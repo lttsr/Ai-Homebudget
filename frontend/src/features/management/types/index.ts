@@ -5,16 +5,23 @@ export type DailyHomeBudget = {
   expenseTotal: number;
 };
 
+/** 支払い方法マスタ */
+export type AccountMst = {
+  accountId: number;
+  name: string;
+};
+
 export type HomeBudgetDetail = {
   budgetId: number;
   detailId: number;
   categoryId: number;
+  accountId: number;
   price: number;
   expensesFlg: boolean;
   memo?: string;
 };
 
-export type HomeBudgetCategory = {
+export type CategoryMst = {
   categoryId: number;
   name: string;
   color: string;

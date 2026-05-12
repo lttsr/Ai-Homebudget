@@ -18,13 +18,18 @@ import {
 import { cn } from "@/lib/utils";
 import { PlusIcon, TrashIcon } from "lucide-react";
 import { useBudget } from "../hooks/use-budget";
-import type { HomeBudgetCategory, HomeBudgetDetail } from "../types";
+import type {
+  AccountMst,
+  CategoryMst,
+  HomeBudgetDetail,
+} from "../types";
 
 type DraftRow = {
   clientKey: string;
   sourceDetailId: number | null;
   budgetId: number;
   categoryId: number;
+  accountId: number;
   price: number;
   expensesFlg: boolean;
   memo?: string;
@@ -36,6 +41,7 @@ function rowsFromDetails(list: HomeBudgetDetail[]): DraftRow[] {
     sourceDetailId: d.detailId,
     budgetId: d.budgetId,
     categoryId: d.categoryId,
+    accountId: d.accountId,
     price: d.price,
     expensesFlg: d.expensesFlg,
     memo: d.memo,
@@ -51,8 +57,9 @@ export function DailyDetailsChange({
   details: HomeBudgetDetail[];
   updated: () => void | Promise<void>;
 }) {
-  const { findCategory } = useBudget();
-  const [categories, setCategories] = useState<HomeBudgetCategory[]>([]);
+  const { findCategory, findPaymentAccount } = useBudget();
+  const [categories, setCategories] = useState<CategoryMst[]>([]);
+  const [accounts, setAccounts] = useState<AccountMst[]>([]);
   const [rows, setRows] = useState<DraftRow[]>(() => rowsFromDetails(details));
   const newKeyRef = useRef(0);
   const pendingScrollKeyRef = useRef<string | null>(null);
@@ -63,17 +70,22 @@ export function DailyDetailsChange({
   );
 
   const defaultCategoryId = categoriesSorted[0]?.categoryId ?? 1;
+  const defaultAccountId = accounts[0]?.accountId ?? 1;
 
   useEffect(() => {
     void (async () => {
       try {
-        const list = await findCategory();
-        setCategories(list);
+        setCategories(await findCategory());
       } catch {
         setCategories([]);
       }
+      try {
+        setAccounts(await findPaymentAccount());
+      } catch {
+        setAccounts([]);
+      }
     })();
-  }, [findCategory]);
+  }, [findCategory, findPaymentAccount]);
 
   useLayoutEffect(() => {
     const key = pendingScrollKeyRef.current;
@@ -127,12 +139,13 @@ export function DailyDetailsChange({
         sourceDetailId: null,
         budgetId,
         categoryId: defaultCategoryId,
+        accountId: defaultAccountId,
         price: 0,
         expensesFlg: true,
         memo: undefined,
       },
     ]);
-  }, [budgetId, defaultCategoryId]);
+  }, [budgetId, defaultAccountId, defaultCategoryId]);
 
   const removeRow = useCallback((clientKey: string) => {
     setRows((prev) => prev.filter((r) => r.clientKey !== clientKey));
@@ -226,7 +239,7 @@ export function DailyDetailsChange({
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-12 lg:gap-5">
-                  <div className="lg:col-span-4">
+                  <div className="lg:col-span-3">
                     <label
                       className="mb-1.5 block text-xs font-medium text-foreground/80"
                       htmlFor={`home-budget-change-category-${row.clientKey}`}
@@ -290,6 +303,60 @@ export function DailyDetailsChange({
                   <div className="lg:col-span-3">
                     <label
                       className="mb-1.5 block text-xs font-medium text-foreground/80"
+                      htmlFor={`home-budget-change-account-${row.clientKey}`}
+                    >
+                      支払い方法
+                    </label>
+                    {accounts.length === 0 ? (
+                      <div
+                        id={`home-budget-change-account-${row.clientKey}`}
+                        className="home_budget_change_account flex h-8 w-full min-w-0 max-w-full items-center rounded-lg border border-border/80 bg-background px-2.5 text-sm text-muted-foreground"
+                      >
+                        支払い方法を読み込み中…
+                      </div>
+                    ) : (
+                      <Select
+                        value={String(row.accountId)}
+                        onValueChange={(v) =>
+                          updateRow(row.clientKey, {
+                            accountId: Number(v),
+                          })
+                        }
+                      >
+                        <SelectTrigger
+                          id={`home-budget-change-account-${row.clientKey}`}
+                          size="sm"
+                          className="home_budget_change_account w-full min-w-0 max-w-full border-border/80 bg-background shadow-none focus-visible:ring-2 focus-visible:ring-ring/30"
+                        >
+                          <SelectValue placeholder="支払い方法を選択" />
+                        </SelectTrigger>
+                        <SelectContent
+                          position="popper"
+                          className="max-h-72 min-w-(--radix-select-trigger-width)"
+                        >
+                          {accounts.some(
+                            (a) => a.accountId === row.accountId,
+                          ) ? null : (
+                            <SelectItem value={String(row.accountId)} disabled>
+                              ID {row.accountId}（マスタ未登録）
+                            </SelectItem>
+                          )}
+                          {accounts.map((a) => (
+                            <SelectItem
+                              key={a.accountId}
+                              value={String(a.accountId)}
+                            >
+                              {a.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+
+                  <div className="lg:col-span-3">
+                    <label
+                      className="mb-1.5 block text-xs font-medium text-foreground/80"
                       htmlFor={`home-budget-change-price-${row.clientKey}`}
                     >
                       金額（円）
@@ -313,7 +380,7 @@ export function DailyDetailsChange({
                     </div>
                   </div>
 
-                  <div className="lg:col-span-5">
+                  <div className="lg:col-span-3">
                     <span className="mb-1.5 block text-xs font-medium text-foreground/80">
                       種別
                     </span>

@@ -19,7 +19,7 @@ import {
   InfoIcon,
 } from "lucide-react";
 import { useBudget } from "../hooks/use-budget";
-import type { HomeBudgetCategory, HomeBudgetDetail } from "../types";
+import type { CategoryMst, HomeBudgetDetail } from "../types";
 import {
   Dialog,
   DialogContent,
@@ -53,7 +53,7 @@ export function DailyDetails({
 }) {
   const { findHomeBudgetDetail, findCategory } = useBudget();
   const [details, setDetails] = useState<HomeBudgetDetail[]>([]);
-  const [categories, setCategories] = useState<HomeBudgetCategory[]>([]);
+  const [categories, setCategories] = useState<CategoryMst[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogChange, setDialogChange] = useState(false);
   const [flowFilter, setFlowFilter] = useState<"all" | "income" | "expense">(

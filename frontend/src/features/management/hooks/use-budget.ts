@@ -17,6 +17,11 @@ export const useBudget = () => {
     return await api.findCategory();
   }, []);
 
+  /** 決済／支払い口座マスタを取得します。 */
+  const findPaymentAccount = useCallback(async () => {
+    return await api.findPaymentAccount();
+  }, []);
+
   /** 月次の入出金明細（日付順）を取得します。 */
   const findMonthlyHomeBudgetDetails = useCallback(
     async (yearMonth: string) => {
@@ -29,6 +34,7 @@ export const useBudget = () => {
     findDailyHomeBudget,
     findHomeBudgetDetail,
     findCategory,
+    findPaymentAccount,
     findMonthlyHomeBudgetDetails,
   };
 };

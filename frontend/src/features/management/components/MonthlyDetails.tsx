@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useBudget } from "../hooks/use-budget";
-import type { HomeBudgetCategory, MonthlyBudgetDetailRow } from "../types";
+import type { CategoryMst, MonthlyBudgetDetailRow } from "../types";
 
 export function MonthlyDetails({
   open,
@@ -17,7 +17,7 @@ export function MonthlyDetails({
 }) {
   const { findMonthlyHomeBudgetDetails, findCategory } = useBudget();
   const [rows, setRows] = useState<MonthlyBudgetDetailRow[]>([]);
-  const [categories, setCategories] = useState<HomeBudgetCategory[]>([]);
+  const [categories, setCategories] = useState<CategoryMst[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

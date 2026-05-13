@@ -30,11 +30,20 @@ export const useBudget = () => {
     [],
   );
 
+  /** 指定月のバッチ登録済み月次集計を取得します（未登録は null）。 */
+  const findHomeBudgetMonthlyAggregate = useCallback(
+    async (baseDate: string) => {
+      return await api.findHomeBudgetMonthlyAggregate(baseDate);
+    },
+    [],
+  );
+
   return {
     findDailyHomeBudget,
     findHomeBudgetDetail,
     findCategory,
     findPaymentAccount,
     findMonthlyHomeBudgetDetails,
+    findHomeBudgetMonthlyAggregate,
   };
 };

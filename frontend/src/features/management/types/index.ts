@@ -1,3 +1,5 @@
+import type { TaskStatusType } from "@/types";
+
 export type DailyHomeBudget = {
   budgetId: number;
   date: string; // yyyy-MM-dd
@@ -30,4 +32,11 @@ export type CategoryMst = {
 /** 月次ダイアログ用：日付付き明細（date: yyyy-MM-dd） */
 export type MonthlyBudgetDetailRow = HomeBudgetDetail & {
   date: string;
+};
+
+/** バッチで月末登録する月次集計（家計・前月参照用） */
+export type HomeBudgetMonthlyAggregate = {
+  baseDate: string;
+  amount: number;
+  status: TaskStatusType;
 };

@@ -4,13 +4,30 @@ import PieGraph, { type PieGraphData } from "@/components/graph/PieGraph";
 import LineGraph, { type LineGraphData } from "@/components/graph/LineGraph";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { TaskStatusType } from "@/types";
 import { useBudget } from "../hooks/use-budget";
-import type { AccountMst, CategoryMst, MonthlyBudgetDetailRow } from "../types";
+import type {
+  AccountMst,
+  CategoryMst,
+  HomeBudgetMonthlyAggregate,
+  MonthlyBudgetDetailRow,
+} from "../types";
 
 type ChartTab = "category" | "account" | "daily";
 
-/** 折れ線グラフの起点。暫定として「前月末終了時点の手元」の例示（5月なら4/30終了時など）— 明細マスタから算出しておらず UI 用の固定値。API 化では口座繰り越し等に差し替え */
-const MONTH_GRAPH_OPENING_BALANCE = 280_000;
+/** 基準月の直前の yyyy-MM（1月なら前年12月） */
+function previousYearMonth(yearMonth: string): string | null {
+  const [ys, ms] = yearMonth.split("-");
+  if (ys === "" || ms === "" || ys == null || ms == null) return null;
+  const y = Number(ys);
+  const m = Number(ms);
+  if (!Number.isFinite(y) || !Number.isFinite(m)) return null;
+  const d = new Date(y, m - 1, 1);
+  d.setMonth(d.getMonth() - 1);
+  const yy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${yy}-${mm}`;
+}
 
 function formatYearMonthJapanese(yearMonth: string): string {
   const [y, m] = yearMonth.split("-");
@@ -48,30 +65,43 @@ export function MonthlyCharts({
   onOpenChange: (open: boolean) => void;
   yearMonth: string | null;
 }) {
-  const { findMonthlyHomeBudgetDetails, findCategory, findPaymentAccount } =
-    useBudget();
+  const {
+    findMonthlyHomeBudgetDetails,
+    findHomeBudgetMonthlyAggregate,
+    findCategory,
+    findPaymentAccount,
+  } = useBudget();
   const [tab, setTab] = useState<ChartTab>("category");
   const [rows, setRows] = useState<MonthlyBudgetDetailRow[]>([]);
   const [categories, setCategories] = useState<CategoryMst[]>([]);
   const [accounts, setAccounts] = useState<AccountMst[]>([]);
   const [loading, setLoading] = useState(false);
+  const [prevMonthAggregate, setPrevMonthAggregate] =
+    useState<HomeBudgetMonthlyAggregate | null>(null);
 
   useEffect(() => {
     if (!open || yearMonth == null) return;
     let cancelled = false;
     void (async () => {
       try {
-        const [detailRows, cats, accs] = await Promise.all([
+        setLoading(true);
+        const prevYm = previousYearMonth(yearMonth);
+        const [agg, detailRows, cats, accs] = await Promise.all([
+          prevYm != null
+            ? findHomeBudgetMonthlyAggregate(prevYm)
+            : Promise.resolve(null),
           findMonthlyHomeBudgetDetails(yearMonth),
           findCategory(),
           findPaymentAccount(),
         ]);
         if (cancelled) return;
+        setPrevMonthAggregate(agg);
         setRows(detailRows);
         setCategories(cats);
         setAccounts(accs);
       } catch {
         if (!cancelled) {
+          setPrevMonthAggregate(null);
           setRows([]);
           setCategories([]);
           setAccounts([]);
@@ -87,9 +117,16 @@ export function MonthlyCharts({
     open,
     yearMonth,
     findMonthlyHomeBudgetDetails,
+    findHomeBudgetMonthlyAggregate,
     findCategory,
     findPaymentAccount,
   ]);
+
+  const openingFromPrevMonthAggregate = useMemo(() => {
+    if (prevMonthAggregate == null) return 0;
+    if (prevMonthAggregate.status !== TaskStatusType.FINISHED) return 0;
+    return prevMonthAggregate.amount;
+  }, [prevMonthAggregate]);
 
   const categoryById = useMemo(
     () => new Map(categories.map((c) => [c.categoryId, c] as const)),
@@ -183,15 +220,20 @@ export function MonthlyCharts({
       byDate.set(r.date, cur);
     }
 
+    const openingNote =
+      prevMonthAggregate != null &&
+      prevMonthAggregate.status === TaskStatusType.FINISHED
+        ? `前月の確定集計に基づく月初残高です。`
+        : `前月の月次集計が未確定です。`;
+
     const points: Record<string, string | number>[] = [
       {
         day_label: "月初",
-        balance: MONTH_GRAPH_OPENING_BALANCE,
-        detail_note:
-          "当月の入出金を反映する前の基準残高（TODO：前月の収支を取得するAPI）。",
+        balance: openingFromPrevMonthAggregate,
+        detail_note: openingNote,
       },
     ];
-    let balance = MONTH_GRAPH_OPENING_BALANCE;
+    let balance = openingFromPrevMonthAggregate;
     for (let d = 1; d <= lastDay; d++) {
       const dd = String(d).padStart(2, "0");
       const key = `${yearMonth}-${dd}`;
@@ -213,16 +255,23 @@ export function MonthlyCharts({
       title: "",
       x_axis: {
         data_key: "day_label",
-        label: "日付",
+        label: "",
       },
       y_axis: {
         label: "残高（円）",
       },
-      series: [{ data_key: "balance", name: "残高推移", stroke: "#000000" }],
+      series: [{ data_key: "balance", name: "残高", stroke: "#000000" }],
       tooltip_extra_key: "detail_note",
       points,
     };
-  }, [rows, yearMonth, categoryById, accountById]);
+  }, [
+    rows,
+    yearMonth,
+    categoryById,
+    accountById,
+    openingFromPrevMonthAggregate,
+    prevMonthAggregate,
+  ]);
 
   const titleLabel = useMemo(() => {
     if (yearMonth == null) {

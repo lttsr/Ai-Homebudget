@@ -19,3 +19,8 @@ export type HomeBudgetCategory = {
   name: string;
   color: string;
 };
+
+/** 月次ダイアログ用：日付付き明細（date: yyyy-MM-dd） */
+export type MonthlyBudgetDetailRow = HomeBudgetDetail & {
+  date: string;
+};

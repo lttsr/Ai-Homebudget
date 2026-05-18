@@ -17,5 +17,18 @@ export const useBudget = () => {
     return await api.findCategory();
   }, []);
 
-  return { findDailyHomeBudget, findHomeBudgetDetail, findCategory };
+  /** 月次の入出金明細（日付順）を取得します。 */
+  const findMonthlyHomeBudgetDetails = useCallback(
+    async (yearMonth: string) => {
+      return await api.findMonthlyHomeBudgetDetails(yearMonth);
+    },
+    [],
+  );
+
+  return {
+    findDailyHomeBudget,
+    findHomeBudgetDetail,
+    findCategory,
+    findMonthlyHomeBudgetDetails,
+  };
 };

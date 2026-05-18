@@ -41,10 +41,10 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { HomeBudgetDetailChange } from "./HomeBudgetDetailChange";
-import { Button } from "@/components/ui/button";
 
-export function HomeBudgetDetail({
+import { Button } from "@/components/ui/button";
+import { DailyDetailsChange } from "./DailyDetailsChange";
+export function DailyDetails({
   budgetId,
   baseDate,
 }: {
@@ -161,7 +161,7 @@ export function HomeBudgetDetail({
           </DialogHeader>
           {budgetId != null && (
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-2 sm:px-5 sm:py-3">
-              <HomeBudgetDetailChange
+              <DailyDetailsChange
                 budgetId={budgetId}
                 details={details}
                 updated={async () => {

@@ -8,6 +8,7 @@ import {
   Weekday as RdpWeekday,
 } from "react-day-picker";
 
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -81,11 +82,14 @@ function Calendar({
   components,
   getDayAmount,
   monthSummary,
+  onMonthSummaryClick,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
   getDayAmount?: (date: Date) => React.ReactNode;
   monthSummary?: { incomeTotal: number; expenseTotal: number };
+  /** 今月の収支サマリー押下時（yearMonth: yyyy-MM） */
+  onMonthSummaryClick?: (yearMonth: string) => void;
 }) {
   const defaultClassNames = getDefaultClassNames();
 
@@ -233,54 +237,80 @@ function Calendar({
               <ChevronDownIcon className={cn("size-4", className)} {...props} />
             );
           },
-          Month: ({ children, className: monthClassName, ...monthProps }) => {
+          Month: ({
+            children,
+            className: monthClassName,
+            calendarMonth,
+            ...monthProps
+          }) => {
             const summary = React.useContext(CalendarMonthSummaryContext);
             const childArr = React.Children.toArray(children);
+            const year_month = format(calendarMonth.date, "yyyy-MM");
             return (
               <div className={monthClassName} {...monthProps}>
                 {childArr[0]}
-                {summary != null && (() => {
-                  const balance = summary.incomeTotal - summary.expenseTotal;
-                  const is_positive = balance >= 0;
-                  return (
-                    <div className="mx-1 mb-1 overflow-hidden rounded-lg border">
-                      <div className="flex items-center justify-between bg-muted/40 px-4 py-2.5">
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <WalletIcon size={13} />
-                          <span>今月の収支</span>
-                        </div>
-                        <span className={cn(
-                          'text-base font-bold tabular-nums',
-                          is_positive
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : 'text-red-600 dark:text-red-400',
-                        )}>
-                          {is_positive ? '+' : ''}{balance.toLocaleString()} 円
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 divide-x border-t text-sm">
-                        <div className="flex flex-col gap-0.5 px-4 py-2">
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <TrendingUpIcon size={11} />
-                            <span>収入</span>
+                {summary != null &&
+                  (() => {
+                    const balance = summary.incomeTotal - summary.expenseTotal;
+                    const is_positive = balance >= 0;
+                    const body = (
+                      <>
+                        <div className="flex items-center justify-between bg-muted/40 px-4 py-2.5">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <WalletIcon size={13} />
+                            <span>今月の収支</span>
                           </div>
-                          <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                            +{summary.incomeTotal.toLocaleString()} 円
+                          <span
+                            className={cn(
+                              "text-base font-bold tabular-nums",
+                              is_positive
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-red-600 dark:text-red-400",
+                            )}
+                          >
+                            {is_positive ? "+" : ""}
+                            {balance.toLocaleString()} 円
                           </span>
                         </div>
-                        <div className="flex flex-col gap-0.5 px-4 py-2">
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <TrendingDownIcon size={11} />
-                            <span>支出</span>
+                        <div className="grid grid-cols-2 divide-x border-t text-sm">
+                          <div className="flex flex-col gap-0.5 px-4 py-2">
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <TrendingUpIcon size={11} />
+                              <span>収入</span>
+                            </div>
+                            <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                              +{summary.incomeTotal.toLocaleString()} 円
+                            </span>
                           </div>
-                          <span className="font-bold tabular-nums text-red-600 dark:text-red-400">
-                            -{summary.expenseTotal.toLocaleString()} 円
-                          </span>
+                          <div className="flex flex-col gap-0.5 px-4 py-2">
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <TrendingDownIcon size={11} />
+                              <span>支出</span>
+                            </div>
+                            <span className="font-bold tabular-nums text-red-600 dark:text-red-400">
+                              -{summary.expenseTotal.toLocaleString()} 円
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })()}
+                      </>
+                    );
+                    const shell = "mx-1 mb-1 overflow-hidden rounded-lg border text-left";
+                    if (onMonthSummaryClick != null) {
+                      return (
+                        <button
+                          type="button"
+                          className={cn(
+                            shell,
+                            "w-full cursor-pointer transition-colors hover:bg-muted/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                          )}
+                          onClick={() => onMonthSummaryClick(year_month)}
+                        >
+                          {body}
+                        </button>
+                      );
+                    }
+                    return <div className={shell}>{body}</div>;
+                  })()}
                 {childArr.slice(1)}
               </div>
             );

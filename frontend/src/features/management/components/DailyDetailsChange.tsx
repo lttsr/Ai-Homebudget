@@ -42,7 +42,7 @@ function rowsFromDetails(list: HomeBudgetDetail[]): DraftRow[] {
   }));
 }
 
-export function HomeBudgetDetailChange({
+export function DailyDetailsChange({
   budgetId,
   details,
   updated,

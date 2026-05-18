@@ -15,6 +15,7 @@ export function AppCarrender({
   selected,
   onDayChange,
   onMonthChange,
+  onMonthSummaryClick,
   className,
   budgetDataList,
 }: {
@@ -24,6 +25,8 @@ export function AppCarrender({
     row: DailyHomeBudget | undefined,
   ) => void;
   onMonthChange?: (yearMonth: string) => void;
+  /** カレンダー「今月の収支」押下（yearMonth: yyyy-MM） */
+  onMonthSummaryClick?: (yearMonth: string) => void;
   className?: string;
   budgetDataList?: DailyHomeBudget[];
 }) {
@@ -93,6 +96,7 @@ export function AppCarrender({
       selected={selected}
       onSelect={handleSelect}
       onMonthChange={handleMonthChange}
+      onMonthSummaryClick={onMonthSummaryClick}
       getDayAmount={getDayAmount}
       monthSummary={monthSummary}
       className={cn(

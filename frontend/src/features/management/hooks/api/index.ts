@@ -26,8 +26,10 @@ function dummyDailyHomeBudgets(ym: string): DailyHomeBudget[] {
 /**
  * dummyDailyHomeBudgets と同じ式（y * 10 + m * 100 + d）の budgetId だけ載せる。
  * 実API想定: WHERE budget_id = ? でヒットする行だけ返す。
+ * ダミー行の月はカレンダーで開く月と揃えること（ズレると常に0件になる）。
  */
 const DUMMY_HOME_BUDGET_DETAILS_MASTER: HomeBudgetDetail[] = [
+  // 2026-04-01 / 04-03 / 04-07
   {
     budgetId: 20661,
     detailId: 1,
@@ -60,6 +62,44 @@ const DUMMY_HOME_BUDGET_DETAILS_MASTER: HomeBudgetDetail[] = [
   },
   {
     budgetId: 20667,
+    detailId: 1,
+    categoryId: 5,
+    price: 1980,
+    expensesFlg: true,
+  },
+  // 2026-05-01 / 05-03 / 05-07
+  {
+    budgetId: 20761,
+    detailId: 1,
+    categoryId: 1,
+    price: 3280,
+    expensesFlg: true,
+    memo: "週末まとめ買い",
+  },
+  {
+    budgetId: 20761,
+    detailId: 2,
+    categoryId: 2,
+    price: 280000,
+    expensesFlg: false,
+  },
+  {
+    budgetId: 20763,
+    detailId: 1,
+    categoryId: 3,
+    price: 500,
+    expensesFlg: true,
+    memo: "通勤（往復）",
+  },
+  {
+    budgetId: 20763,
+    detailId: 2,
+    categoryId: 4,
+    price: 680,
+    expensesFlg: true,
+  },
+  {
+    budgetId: 20767,
     detailId: 1,
     categoryId: 5,
     price: 1980,

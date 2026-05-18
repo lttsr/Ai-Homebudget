@@ -14,10 +14,17 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronDownIcon,
+  TrendingUpIcon,
+  TrendingDownIcon,
+  WalletIcon,
 } from "lucide-react";
 
 const CalendarGetDayAmountContext = React.createContext<
   ((date: Date) => React.ReactNode) | undefined
+>(undefined);
+
+const CalendarMonthSummaryContext = React.createContext<
+  { incomeTotal: number; expenseTotal: number } | undefined
 >(undefined);
 
 function format_weekend_header_bg(children: React.ReactNode) {
@@ -73,15 +80,18 @@ function Calendar({
   formatters,
   components,
   getDayAmount,
+  monthSummary,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
   getDayAmount?: (date: Date) => React.ReactNode;
+  monthSummary?: { incomeTotal: number; expenseTotal: number };
 }) {
   const defaultClassNames = getDefaultClassNames();
 
   return (
     <CalendarGetDayAmountContext.Provider value={getDayAmount}>
+    <CalendarMonthSummaryContext.Provider value={monthSummary}>
       <DayPicker
         showOutsideDays={showOutsideDays}
         className={cn(
@@ -223,6 +233,58 @@ function Calendar({
               <ChevronDownIcon className={cn("size-4", className)} {...props} />
             );
           },
+          Month: ({ children, className: monthClassName, ...monthProps }) => {
+            const summary = React.useContext(CalendarMonthSummaryContext);
+            const childArr = React.Children.toArray(children);
+            return (
+              <div className={monthClassName} {...monthProps}>
+                {childArr[0]}
+                {summary != null && (() => {
+                  const balance = summary.incomeTotal - summary.expenseTotal;
+                  const is_positive = balance >= 0;
+                  return (
+                    <div className="mx-1 mb-1 overflow-hidden rounded-lg border">
+                      <div className="flex items-center justify-between bg-muted/40 px-4 py-2.5">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <WalletIcon size={13} />
+                          <span>今月の収支</span>
+                        </div>
+                        <span className={cn(
+                          'text-base font-bold tabular-nums',
+                          is_positive
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-red-600 dark:text-red-400',
+                        )}>
+                          {is_positive ? '+' : ''}{balance.toLocaleString()} 円
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 divide-x border-t text-sm">
+                        <div className="flex flex-col gap-0.5 px-4 py-2">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <TrendingUpIcon size={11} />
+                            <span>収入</span>
+                          </div>
+                          <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                            +{summary.incomeTotal.toLocaleString()} 円
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-0.5 px-4 py-2">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <TrendingDownIcon size={11} />
+                            <span>支出</span>
+                          </div>
+                          <span className="font-bold tabular-nums text-red-600 dark:text-red-400">
+                            -{summary.expenseTotal.toLocaleString()} 円
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+                {childArr.slice(1)}
+              </div>
+            );
+          },
           DayButton: ({ ...props }) => (
             <CalendarDayButton locale={locale} {...props} />
           ),
@@ -239,6 +301,7 @@ function Calendar({
         }}
         {...props}
       />
+    </CalendarMonthSummaryContext.Provider>
     </CalendarGetDayAmountContext.Provider>
   );
 }

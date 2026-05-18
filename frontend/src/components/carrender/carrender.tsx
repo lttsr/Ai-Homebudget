@@ -1,4 +1,5 @@
 import { useCallback, useMemo, type ReactNode } from "react";
+import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import type { DailyHomeBudget } from "@/features/management/types";
@@ -13,6 +14,7 @@ function cellDateToRowDateKey(d: Date): string {
 export function AppCarrender({
   selected,
   onDayChange,
+  onMonthChange,
   className,
   budgetDataList,
 }: {
@@ -21,6 +23,7 @@ export function AppCarrender({
     date: Date | undefined,
     row: DailyHomeBudget | undefined,
   ) => void;
+  onMonthChange?: (yearMonth: string) => void;
   className?: string;
   budgetDataList?: DailyHomeBudget[];
 }) {
@@ -30,6 +33,13 @@ export function AppCarrender({
       map.set(row.date, row);
     }
     return map;
+  }, [budgetDataList]);
+
+  const monthSummary = useMemo(() => {
+    const list = budgetDataList ?? [];
+    const incomeTotal = list.reduce((sum, row) => sum + row.incomeTotal, 0);
+    const expenseTotal = list.reduce((sum, row) => sum + row.expenseTotal, 0);
+    return { incomeTotal, expenseTotal };
   }, [budgetDataList]);
 
   const getDayAmount = useMemo(
@@ -70,15 +80,23 @@ export function AppCarrender({
     [budgetByDate, onDayChange],
   );
 
+  const handleMonthChange = useCallback(
+    (month: Date) => {
+      onMonthChange?.(format(month, "yyyy-MM"));
+    },
+    [onMonthChange],
+  );
+
   return (
     <Calendar
       mode="single"
       selected={selected}
       onSelect={handleSelect}
+      onMonthChange={handleMonthChange}
       getDayAmount={getDayAmount}
+      monthSummary={monthSummary}
       className={cn(
-        "w-full min-w-0 max-w-full",
-        "[--cell-size:3rem] sm:[--cell-size:3.25rem] md:[--cell-size:3.5rem]",
+        "w-full min-w-0 max-w-full [--cell-size:1rem] sm:[--cell-size:1.25rem] md:[--cell-size:1.5rem]",
         className,
       )}
     />

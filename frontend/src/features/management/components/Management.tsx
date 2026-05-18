@@ -23,6 +23,17 @@ export const ManagementHome = () => {
     })();
   }, [findDailyHomeBudget]);
 
+  // 月切り替え時
+  const onMonthChange = useCallback(
+    async (yearMonth: string) => {
+      const result = await findDailyHomeBudget(yearMonth);
+      setDataList(result);
+      setSelectedDate(undefined);
+      setSelectedBudget(undefined);
+    },
+    [findDailyHomeBudget],
+  );
+
   // 日付選択時
   const onSelectDate = useCallback(
     (date: Date | undefined, row: DailyHomeBudget | undefined) => {
@@ -33,7 +44,7 @@ export const ManagementHome = () => {
   );
 
   return (
-    <div className="box-border flex h-full min-h-0 w-full flex-col p-3 sm:p-4 md:p-5">
+    <div className="box-border flex h-full min-h-0 w-full flex-col p-3 sm:p-2">
       <Card className="flex min-h-0 w-full flex-1 flex-col overflow-hidden shadow-sm">
         <CardHeader className="flex shrink-0 border-b">
           <div className="items-center mt-2">
@@ -43,12 +54,13 @@ export const ManagementHome = () => {
             <EllipsisVertical className="size-6" />
           </div>
         </CardHeader>
-        <CardContent className="flex min-h-0 flex-1 flex-col p-3 md:p-4">
+        <CardContent className="flex min-h-0 flex-1 flex-col">
           <div className="grid min-h-0 w-full flex-1 grid-cols-1 gap-4 md:grid-cols-[2fr_3fr] md:items-stretch md:gap-5">
             <div className="min-w-0">
               <AppCarrender
                 selected={selectedDate}
                 onDayChange={onSelectDate}
+                onMonthChange={onMonthChange}
                 budgetDataList={dataList}
               />
             </div>

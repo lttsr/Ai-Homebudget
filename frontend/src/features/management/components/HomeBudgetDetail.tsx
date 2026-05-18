@@ -184,7 +184,10 @@ export function HomeBudgetDetail({
             <DropdownMenuContent className="min-w-48">
               <DropdownMenuLabel>明細情報</DropdownMenuLabel>
               <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
+                <DropdownMenuSubTrigger
+                  disabled={details.length === 0}
+                  className="data-disabled:pointer-events-none data-disabled:opacity-50"
+                >
                   <FileCheck size={16} className="mr-2" />
                   情報
                 </DropdownMenuSubTrigger>

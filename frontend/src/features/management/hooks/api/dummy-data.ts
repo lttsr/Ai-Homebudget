@@ -4,9 +4,7 @@ import {
   type HomeBudgetDetail,
   type CategoryMst,
   type MonthlyBudgetDetailRow,
-  type HomeBudgetMonthlyAggregate,
 } from "../../types";
-import { TaskStatusType } from "@/types";
 
 /**
  * ダミー専用 budgetId（日次一覧・明細と揃える）
@@ -33,7 +31,7 @@ export const DUMMY_CATEGORY_MASTER: CategoryMst[] = [
   { categoryId: 10, name: "クレジットカード決済", color: "#0ea5e9" },
 ];
 
-/** 決済／支払い口座ダミーマスタ */
+/** 口座・決済手段ダミーマスタ */
 export const DUMMY_PAYMENT_ACCOUNT_MASTER: AccountMst[] = [
   {
     accountId: 1,
@@ -52,33 +50,6 @@ export const DUMMY_PAYMENT_ACCOUNT_MASTER: AccountMst[] = [
     name: "電子マネー",
   },
 ];
-
-/** 月次集計ダミー（バッチ確定イメージ） key: yyyy-MM */
-const DUMMY_MONTHLY_AGGREGATES: Record<string, HomeBudgetMonthlyAggregate> = {
-  "2026-03": {
-    baseDate: "2026-03",
-    amount: 248_600,
-    status: TaskStatusType.FINISHED,
-  },
-  "2026-04": {
-    baseDate: "2026-04",
-    amount: 280_000,
-    status: TaskStatusType.FINISHED,
-  },
-  /** 5月確定まち：6月グラフの「前月」参照で未確定→0円扱いの検証用 */
-  "2026-05": {
-    baseDate: "2026-05",
-    amount: 560_000,
-    status: TaskStatusType.PENDING,
-  },
-};
-
-/** 指定月の月次集計。未登録は null */
-export function dummyHomeBudgetMonthlyAggregate(
-  baseDate: string,
-): HomeBudgetMonthlyAggregate | null {
-  return DUMMY_MONTHLY_AGGREGATES[baseDate] ?? null;
-}
 
 /** 明細マスタから、budgetId 単位の収入・支出合計。 */
 export function totalsFromDetailsForBudget(

@@ -305,14 +305,14 @@ export function DailyDetailsChange({
                       className="mb-1.5 block text-xs font-medium text-foreground/80"
                       htmlFor={`home-budget-change-account-${row.clientKey}`}
                     >
-                      支払い方法
+                      口座・決済手段
                     </label>
                     {accounts.length === 0 ? (
                       <div
                         id={`home-budget-change-account-${row.clientKey}`}
                         className="home_budget_change_account flex h-8 w-full min-w-0 max-w-full items-center rounded-lg border border-border/80 bg-background px-2.5 text-sm text-muted-foreground"
                       >
-                        支払い方法を読み込み中…
+                        口座・決済手段を読み込み中…
                       </div>
                     ) : (
                       <Select
@@ -328,7 +328,7 @@ export function DailyDetailsChange({
                           size="sm"
                           className="home_budget_change_account w-full min-w-0 max-w-full border-border/80 bg-background shadow-none focus-visible:ring-2 focus-visible:ring-ring/30"
                         >
-                          <SelectValue placeholder="支払い方法を選択" />
+                          <SelectValue placeholder="口座・決済手段を選択" />
                         </SelectTrigger>
                         <SelectContent
                           position="popper"

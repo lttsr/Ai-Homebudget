@@ -12,12 +12,12 @@ export const useBudget = () => {
     return await api.findHomeBudgetDetail(budgetId);
   }, []);
 
-  /** カテゴリデータを取得します。 */
+  /** カテゴリマスタを取得します。 */
   const findCategory = useCallback(async () => {
     return await api.findCategory();
   }, []);
 
-  /** 決済／支払い口座マスタを取得します。 */
+  /** 口座・決済手段マスタを取得します。 */
   const findPaymentAccount = useCallback(async () => {
     return await api.findPaymentAccount();
   }, []);
@@ -30,20 +30,11 @@ export const useBudget = () => {
     [],
   );
 
-  /** 指定月のバッチ登録済み月次集計を取得します（未登録は null）。 */
-  const findHomeBudgetMonthlyAggregate = useCallback(
-    async (baseDate: string) => {
-      return await api.findHomeBudgetMonthlyAggregate(baseDate);
-    },
-    [],
-  );
-
   return {
     findDailyHomeBudget,
     findHomeBudgetDetail,
     findCategory,
     findPaymentAccount,
     findMonthlyHomeBudgetDetails,
-    findHomeBudgetMonthlyAggregate,
   };
 };

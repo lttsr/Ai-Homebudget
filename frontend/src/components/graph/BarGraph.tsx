@@ -10,6 +10,75 @@ import {
 } from "recharts";
 import { DEFAULT_SERIES_COLORS } from "./types/color";
 
+type BarGraphTooltipPayloadItem = Readonly<{
+  dataKey?: unknown;
+  name?: unknown;
+  value?: unknown;
+  payload?: Record<string, unknown>;
+}>;
+
+function BarGraphTooltipContent({
+  active,
+  payload,
+  label,
+  extraKey,
+}: Readonly<{
+  active?: boolean;
+  payload?: ReadonlyArray<BarGraphTooltipPayloadItem>;
+  label?: unknown;
+  extraKey?: string;
+}>) {
+  if (!active || payload == null || payload.length === 0) return null;
+
+  const row = payload[0]?.payload as Record<string, unknown> | undefined;
+  const rawExtra =
+    extraKey != null && extraKey !== "" && row != null
+      ? row[extraKey]
+      : undefined;
+  const extraText =
+    typeof rawExtra === "string" && rawExtra.trim() !== ""
+      ? rawExtra.trim()
+      : null;
+
+  return (
+    <div
+      className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm shadow-md dark:border-zinc-600 dark:bg-zinc-900"
+      style={{ maxWidth: 360 }}
+    >
+      <p className="mb-1 font-medium text-foreground">
+        {String(label ?? "")}
+      </p>
+      {payload.map((entry) => {
+        const num =
+          typeof entry.value === "number"
+            ? entry.value
+            : Number(entry.value ?? 0);
+        const shown = Number.isNaN(num)
+          ? String(entry.value ?? "")
+          : `${num.toLocaleString("ja-JP")}円`;
+        const title =
+          entry.name != null && String(entry.name).length > 0
+            ? `${String(entry.name)}：`
+            : "";
+        return (
+          <p
+            key={String(entry.dataKey)}
+            className="tabular-nums text-foreground"
+          >
+            {title}
+            {shown}
+          </p>
+        );
+      })}
+      {extraText != null ? (
+        <pre className="text-muted-foreground mt-2 max-h-52 max-w-[min(100vw,360px)] overflow-auto whitespace-pre-wrap border-t border-zinc-200 pt-2 text-xs leading-relaxed dark:border-zinc-600">
+          {extraText}
+        </pre>
+      ) : null}
+    </div>
+  );
+}
+
 function resolveSeriesFill(
   fill: string | null | undefined,
   index: number,
@@ -41,6 +110,8 @@ export type BarGraphData = {
   };
   series: BarGraphSeriesItem[];
   points: Record<string, string | number>[];
+  /** ツールチップで points 内のこのキーを追加表示（改行区切りテキストなど） */
+  tooltip_extra_key?: string;
 };
 
 export type BarGraphProps = {
@@ -48,6 +119,8 @@ export type BarGraphProps = {
 };
 
 function BarGraph({ data }: BarGraphProps) {
+  const extraKey = data.tooltip_extra_key;
+
   return (
     <div className="recharts-chart-host h-[min(360px,55vh)] w-full rounded-xl border border-zinc-200 bg-white/80 p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900/50">
       <ResponsiveContainer width="100%" height="100%">
@@ -90,23 +163,9 @@ function BarGraph({ data }: BarGraphProps) {
             }}
           />
           <Tooltip
-            separator=""
-            formatter={(value, name) => {
-              const n = typeof value === "number" ? value : Number(value);
-              if (Number.isNaN(n)) {
-                return ["", ""];
-              }
-              const num = `${n.toLocaleString("ja-JP")}円`;
-              if (name === undefined || name === null || name === "") {
-                return [num, undefined];
-              }
-              return [num, `${String(name)}：`];
-            }}
-            labelFormatter={(label) => `${label}`}
-            contentStyle={{
-              borderRadius: "8px",
-              border: "1px solid rgb(228 228 231)",
-            }}
+            content={(props) => (
+              <BarGraphTooltipContent {...props} extraKey={extraKey} />
+            )}
           />
           <Legend />
           {data.series.map((s, index) => (

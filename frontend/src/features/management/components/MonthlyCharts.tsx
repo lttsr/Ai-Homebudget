@@ -1,33 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BarChart3 } from "lucide-react";
+import BarGraph, { type BarGraphData } from "@/components/graph/BarGraph";
 import PieGraph, { type PieGraphData } from "@/components/graph/PieGraph";
-import LineGraph, { type LineGraphData } from "@/components/graph/LineGraph";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { TaskStatusType } from "@/types";
 import { useBudget } from "../hooks/use-budget";
-import type {
-  AccountMst,
-  CategoryMst,
-  HomeBudgetMonthlyAggregate,
-  MonthlyBudgetDetailRow,
-} from "../types";
+import type { AccountMst, CategoryMst, MonthlyBudgetDetailRow } from "../types";
 
-type ChartTab = "category" | "account" | "daily";
-
-/** 基準月の直前の yyyy-MM（1月なら前年12月） */
-function previousYearMonth(yearMonth: string): string | null {
-  const [ys, ms] = yearMonth.split("-");
-  if (ys === "" || ms === "" || ys == null || ms == null) return null;
-  const y = Number(ys);
-  const m = Number(ms);
-  if (!Number.isFinite(y) || !Number.isFinite(m)) return null;
-  const d = new Date(y, m - 1, 1);
-  d.setMonth(d.getMonth() - 1);
-  const yy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  return `${yy}-${mm}`;
-}
+type ChartTab = "category" | "account" | "expense-daily";
 
 function formatYearMonthJapanese(yearMonth: string): string {
   const [y, m] = yearMonth.split("-");
@@ -37,25 +17,68 @@ function formatYearMonthJapanese(yearMonth: string): string {
   return `${y}年${Number(m)}月`;
 }
 
-/** ツールチップ用：その日の明細をテキスト化 */
-function formatDetailRowsForTooltip(
+/** グラフの終了日（当月なら今日、過去月なら月末、未来月は 0） */
+function chartEndDay(yearMonth: string): number {
+  const [ys, ms] = yearMonth.split("-");
+  const y = Number(ys);
+  const mon = Number(ms);
+  if (!Number.isFinite(y) || !Number.isFinite(mon) || ys === "" || ms === "") {
+    return 0;
+  }
+  const now = new Date();
+  const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const lastOfMonth = new Date(y, mon, 0).getDate();
+  if (yearMonth === currentYm) {
+    return now.getDate();
+  }
+  if (yearMonth < currentYm) {
+    return lastOfMonth;
+  }
+  return 0;
+}
+
+/** 日別支出グラフの Y 上限をきりのよく切り上げ */
+function ceilDailyExpenseAxisMax(rawMax: number): number {
+  if (!Number.isFinite(rawMax) || rawMax <= 0) {
+    return 10_000;
+  }
+  const step = 10_000;
+  return Math.ceil(rawMax / step) * step;
+}
+
+function buildExpenseYAxisTicks(max: number): number[] {
+  const tickCount = 5;
+  const ticks: number[] = [];
+  for (let i = 0; i <= tickCount; i++) {
+    ticks.push(Math.round((max * i) / tickCount));
+  }
+  return ticks;
+}
+
+/** ツールチップ用：その日の支出明細のみテキスト化 */
+function formatExpenseRowsForTooltip(
   list: MonthlyBudgetDetailRow[],
   categoryById: Map<number, CategoryMst>,
   accountById: Map<number, AccountMst>,
 ): string {
-  const sorted = [...list].sort((a, b) => a.detailId - b.detailId);
+  const sorted = [...list]
+    .filter((r) => r.expensesFlg)
+    .sort((a, b) => a.detailId - b.detailId);
+  if (sorted.length === 0) {
+    return "";
+  }
   return sorted
     .map((r) => {
       const cat =
         categoryById.get(r.categoryId)?.name ?? `カテゴリ#${r.categoryId}`;
-      const acc = accountById.get(r.accountId)?.name ?? `支払い#${r.accountId}`;
-      const sign = r.expensesFlg ? "-" : "+";
-      return `${cat}（${acc}） ${sign}${r.price.toLocaleString("ja-JP")}円`;
+      const acc =
+        accountById.get(r.accountId)?.name ?? `口座・決済手段#${r.accountId}`;
+      return `${cat}（${acc}） -${r.price.toLocaleString("ja-JP")}円`;
     })
     .join("\n");
 }
 
-/** 月次明細から支出のみをカテゴリ／決済別に集計し PieGraph 用に変換 */
+/** 月次明細から支出のみをカテゴリ／口座・決済手段別に集計し PieGraph 用に変換 */
 export function MonthlyCharts({
   open,
   onOpenChange,
@@ -65,19 +88,13 @@ export function MonthlyCharts({
   onOpenChange: (open: boolean) => void;
   yearMonth: string | null;
 }) {
-  const {
-    findMonthlyHomeBudgetDetails,
-    findHomeBudgetMonthlyAggregate,
-    findCategory,
-    findPaymentAccount,
-  } = useBudget();
+  const { findMonthlyHomeBudgetDetails, findCategory, findPaymentAccount } =
+    useBudget();
   const [tab, setTab] = useState<ChartTab>("category");
   const [rows, setRows] = useState<MonthlyBudgetDetailRow[]>([]);
   const [categories, setCategories] = useState<CategoryMst[]>([]);
   const [accounts, setAccounts] = useState<AccountMst[]>([]);
   const [loading, setLoading] = useState(false);
-  const [prevMonthAggregate, setPrevMonthAggregate] =
-    useState<HomeBudgetMonthlyAggregate | null>(null);
 
   useEffect(() => {
     if (!open || yearMonth == null) return;
@@ -85,23 +102,17 @@ export function MonthlyCharts({
     void (async () => {
       try {
         setLoading(true);
-        const prevYm = previousYearMonth(yearMonth);
-        const [agg, detailRows, cats, accs] = await Promise.all([
-          prevYm != null
-            ? findHomeBudgetMonthlyAggregate(prevYm)
-            : Promise.resolve(null),
+        const [detailRows, cats, accs] = await Promise.all([
           findMonthlyHomeBudgetDetails(yearMonth),
           findCategory(),
           findPaymentAccount(),
         ]);
         if (cancelled) return;
-        setPrevMonthAggregate(agg);
         setRows(detailRows);
         setCategories(cats);
         setAccounts(accs);
       } catch {
         if (!cancelled) {
-          setPrevMonthAggregate(null);
           setRows([]);
           setCategories([]);
           setAccounts([]);
@@ -117,16 +128,9 @@ export function MonthlyCharts({
     open,
     yearMonth,
     findMonthlyHomeBudgetDetails,
-    findHomeBudgetMonthlyAggregate,
     findCategory,
     findPaymentAccount,
   ]);
-
-  const openingFromPrevMonthAggregate = useMemo(() => {
-    if (prevMonthAggregate == null) return 0;
-    if (prevMonthAggregate.status !== TaskStatusType.FINISHED) return 0;
-    return prevMonthAggregate.amount;
-  }, [prevMonthAggregate]);
 
   const categoryById = useMemo(
     () => new Map(categories.map((c) => [c.categoryId, c] as const)),
@@ -174,7 +178,7 @@ export function MonthlyCharts({
       .map(([accountId, value]) => {
         const ac = accountById.get(accountId);
         return {
-          name: ac?.name ?? `支払い #${accountId}`,
+          name: ac?.name ?? `口座・決済手段 #${accountId}`,
           value,
         };
       })
@@ -188,18 +192,16 @@ export function MonthlyCharts({
     };
   }, [expenseRows, accountById]);
 
-  /** 月初残高に、日々の収入を足して支出を引いたときの終日残高 */
-  const dailyLine: LineGraphData | null = useMemo(() => {
+  /** 当月1日〜今日（過去月は月末まで）の日別支出合計 */
+  const dailyExpenseBar: BarGraphData | null = useMemo(() => {
     if (yearMonth == null) return null;
     const [ys, ms] = yearMonth.split("-");
-    const y = Number(ys);
     const mon = Number(ms);
-    if (!Number.isFinite(y) || !Number.isFinite(mon) || ys === "" || ms === "")
-      return null;
-    const hasRowInMonth = rows.some((r) => r.date.startsWith(yearMonth));
-    if (!hasRowInMonth) return null;
+    if (!Number.isFinite(mon) || ys === "" || ms === "") return null;
 
-    const lastDay = new Date(y, mon, 0).getDate();
+    const endDay = chartEndDay(yearMonth);
+    if (endDay <= 0) return null;
+
     const rowsByDate = new Map<string, MonthlyBudgetDetailRow[]>();
     for (const r of rows) {
       if (!r.date.startsWith(yearMonth)) continue;
@@ -208,70 +210,52 @@ export function MonthlyCharts({
       rowsByDate.set(r.date, list);
     }
 
-    const byDate = new Map<string, { income: number; expense: number }>();
-    for (const r of rows) {
+    const expenseByDate = new Map<string, number>();
+    for (const r of expenseRows) {
       if (!r.date.startsWith(yearMonth)) continue;
-      const cur = byDate.get(r.date) ?? { income: 0, expense: 0 };
-      if (r.expensesFlg) {
-        cur.expense += r.price;
-      } else {
-        cur.income += r.price;
-      }
-      byDate.set(r.date, cur);
+      expenseByDate.set(r.date, (expenseByDate.get(r.date) ?? 0) + r.price);
     }
 
-    const openingNote =
-      prevMonthAggregate != null &&
-      prevMonthAggregate.status === TaskStatusType.FINISHED
-        ? `前月の確定集計に基づく月初残高です。`
-        : `前月の月次集計が未確定です。`;
-
-    const points: Record<string, string | number>[] = [
-      {
-        day_label: "月初",
-        balance: openingFromPrevMonthAggregate,
-        detail_note: openingNote,
-      },
-    ];
-    let balance = openingFromPrevMonthAggregate;
-    for (let d = 1; d <= lastDay; d++) {
+    const points: Record<string, string | number>[] = [];
+    let maxExpense = 0;
+    for (let d = 1; d <= endDay; d++) {
       const dd = String(d).padStart(2, "0");
       const key = `${yearMonth}-${dd}`;
-      const v = byDate.get(key) ?? { income: 0, expense: 0 };
-      balance += v.income - v.expense;
+      const expense = expenseByDate.get(key) ?? 0;
+      maxExpense = Math.max(maxExpense, expense);
       const dayRows = rowsByDate.get(key) ?? [];
       const detail_note =
-        dayRows.length === 0
-          ? ""
-          : formatDetailRowsForTooltip(dayRows, categoryById, accountById);
+        expense === 0
+          ? "この日の支出はありません。"
+          : formatExpenseRowsForTooltip(dayRows, categoryById, accountById);
       points.push({
         day_label: `${mon}/${d}`,
-        balance,
+        expense,
         detail_note,
       });
     }
+
+    const yMax = ceilDailyExpenseAxisMax(maxExpense);
+    const dayLabels = points.map((p) => String(p.day_label));
 
     return {
       title: "",
       x_axis: {
         data_key: "day_label",
+        ticks: dayLabels,
         label: "",
       },
       y_axis: {
-        label: "残高（円）",
+        label: "支出（円）",
+        min: 0,
+        max: yMax,
+        ticks: buildExpenseYAxisTicks(yMax),
       },
-      series: [{ data_key: "balance", name: "残高", stroke: "#000000" }],
+      series: [{ data_key: "expense", name: "支出", fill: "#f97316" }],
       tooltip_extra_key: "detail_note",
       points,
     };
-  }, [
-    rows,
-    yearMonth,
-    categoryById,
-    accountById,
-    openingFromPrevMonthAggregate,
-    prevMonthAggregate,
-  ]);
+  }, [rows, expenseRows, yearMonth, categoryById, accountById]);
 
   const titleLabel = useMemo(() => {
     if (yearMonth == null) {
@@ -279,6 +263,9 @@ export function MonthlyCharts({
     }
     return `${formatYearMonthJapanese(yearMonth)} の収支グラフ`;
   }, [yearMonth]);
+
+  const activePie =
+    tab === "category" ? categoryPie : tab === "account" ? accountPie : null;
 
   const onDialogOpenChange = useCallback(
     (next: boolean) => {
@@ -288,13 +275,22 @@ export function MonthlyCharts({
     [onOpenChange],
   );
 
-  const activePie =
-    tab === "category" ? categoryPie : tab === "account" ? accountPie : null;
   const tabDef: { id: ChartTab; label: string }[] = [
     { id: "category", label: "カテゴリ（円）" },
-    { id: "account", label: "決済（円）" },
-    { id: "daily", label: "残高の推移" },
+    { id: "account", label: "口座・決済手段（円）" },
+    { id: "expense-daily", label: "支出の推移" },
   ];
+
+  const expenseChartCaption = useMemo(() => {
+    if (yearMonth == null) return "";
+    const endDay = chartEndDay(yearMonth);
+    const now = new Date();
+    const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    if (yearMonth === currentYm) {
+      return `${formatYearMonthJapanese(yearMonth)}1日〜本日（${endDay}日）の支出合計`;
+    }
+    return `${formatYearMonthJapanese(yearMonth)}1日〜${endDay}日の支出合計`;
+  }, [yearMonth]);
 
   return (
     <Dialog open={open} onOpenChange={onDialogOpenChange}>
@@ -335,17 +331,20 @@ export function MonthlyCharts({
             <p className="text-muted-foreground py-12 text-center text-sm">
               読み込み中…
             </p>
-          ) : tab === "daily" ? (
-            dailyLine == null ? (
+          ) : tab === "expense-daily" ? (
+            dailyExpenseBar == null ? (
               <p className="text-muted-foreground py-12 text-center text-sm">
-                この月の明細がないため、残高グラフは表示できません。
+                この月はまだ表示できる期間がありません。
               </p>
             ) : (
               <div className="space-y-2">
-                <h3 className="text-foreground text-sm font-semibold">
-                  月初からの終日残高
-                </h3>
-                <LineGraph data={dailyLine} />
+                <span className="text-foreground block text-sm font-semibold">
+                  {expenseChartCaption}
+                </span>
+                <p className="text-muted-foreground text-xs">
+                  収入は含みません。支出がない日は 0 円です。
+                </p>
+                <BarGraph data={dailyExpenseBar} />
               </div>
             )
           ) : activePie == null ? (
@@ -354,11 +353,11 @@ export function MonthlyCharts({
             </p>
           ) : (
             <div className="space-y-2">
-              <h3 className="text-foreground text-sm font-semibold">
+              <span className="text-foreground block text-sm font-semibold">
                 {tab === "category"
                   ? "カテゴリ別（支出）"
-                  : "決済方法別（支出）"}
-              </h3>
+                  : "口座・決済手段別（支出）"}
+              </span>
               <PieGraph data={activePie} />
             </div>
           )}

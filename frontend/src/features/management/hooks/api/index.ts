@@ -4,14 +4,12 @@ import type {
   AccountMst,
   CategoryMst,
   HomeBudgetDetail,
-  HomeBudgetMonthlyAggregate,
   MonthlyBudgetDetailRow,
 } from "../../types";
 import {
   dummyCategory,
   dummyDailyHomeBudgets,
   dummyHomeBudgetDetail,
-  dummyHomeBudgetMonthlyAggregate,
   dummyMonthlyHomeBudgetDetailRows,
   dummyPaymentAccount,
 } from "./dummy-data";
@@ -49,7 +47,7 @@ export const findCategory = async (): Promise<CategoryMst[]> => {
   return dummyCategory();
 };
 
-/** 決済／支払い口座マスタを取得します。 */
+/** 口座・決済手段マスタを取得します。 */
 export const findPaymentAccount =
   async (): Promise<AccountMst[]> => {
     // TODO: API
@@ -68,17 +66,4 @@ export const findMonthlyHomeBudgetDetails = async (
   // return response.data;
   await Promise.resolve();
   return dummyMonthlyHomeBudgetDetailRows(yearMonth);
-};
-
-/** 月次集計（バッチ確定済み／未確定）。前月参照時は未取得・未確定なら.amount を 0 円として扱う想定 */
-export const findHomeBudgetMonthlyAggregate = async (
-  baseDate: string,
-): Promise<HomeBudgetMonthlyAggregate | null> => {
-  // TODO: API
-  // const response = await axios.get('/api/home-budget-monthly-aggregate', {
-  //   params: { baseDate },
-  // });
-  // return response.data;
-  await Promise.resolve();
-  return dummyHomeBudgetMonthlyAggregate(baseDate);
 };

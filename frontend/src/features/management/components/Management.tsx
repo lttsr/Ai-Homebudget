@@ -100,6 +100,7 @@ export const ManagementHome = () => {
 
   return (
     <div className="box-border flex h-full min-h-0 w-full flex-col p-3 sm:p-2">
+      {/* 月次入出金明細 */}
       <Dialog open={monthlyDialogOpen} onOpenChange={onMonthlyDialogOpenChange}>
         <DialogContent className="flex max-h-[min(88vh,860px)] w-[min(98vw,1280px)] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-hidden p-4 sm:max-w-[min(98vw,1280px)] sm:p-5 md:max-w-[min(98vw,1280px)] lg:max-w-[min(98vw,1280px)]">
           <DialogHeader className="shrink-0">
@@ -118,11 +119,12 @@ export const ManagementHome = () => {
           ) : null}
         </DialogContent>
       </Dialog>
+      {/* 設定 */}
       <Dialog
         open={settingsDialogOpen}
         onOpenChange={onSettingsDialogOpenChange}
       >
-        <DialogContent className="flex max-h-[min(88vh,860px)] w-[min(98vw,1280px)] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-hidden p-4 sm:max-w-[min(98vw,1280px)] sm:p-5 md:max-w-[min(98vw,1280px)] lg:max-w-[min(98vw,1280px)]">
+        <DialogContent className="flex h-[min(88vh,700px)] w-[min(98vw,56rem)] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-hidden p-4 sm:max-w-[min(98vw,56rem)] sm:p-5">
           <DialogHeader className="shrink-0">
             <div className="flex items-center">
               <Settings2 size={14} />
@@ -130,15 +132,19 @@ export const ManagementHome = () => {
             </div>
           </DialogHeader>
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-2 sm:px-5 sm:py-3">
-            <Settings />
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              <Settings />
+            </div>
           </div>
         </DialogContent>
       </Dialog>
+      {/* 月次グラフ */}
       <MonthlyCharts
         open={chartsDialogOpen}
         onOpenChange={onChartsDialogOpenChange}
         yearMonth={chartsYearMonth}
       />
+      {/* 日次収支 */}
       <Card className="flex min-h-0 w-full flex-1 flex-col gap-0 overflow-hidden shadow-sm">
         <CardHeader className="flex shrink-0 items-center justify-between border-b">
           <CardTitle className="leading-none">家計管理</CardTitle>

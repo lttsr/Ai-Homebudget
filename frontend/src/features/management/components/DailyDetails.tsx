@@ -43,13 +43,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { DailyDetailsChange } from "./DailyDetailsChange";
 export function DailyDetails({
   budgetId,
   baseDate,
+  isMonthConfirmed = false,
 }: {
   budgetId?: number;
   baseDate: string;
+  isMonthConfirmed?: boolean;
 }) {
   const { findHomeBudgetDetail, findCategory } = useBudget();
   const [details, setDetails] = useState<HomeBudgetDetail[]>([]);
@@ -149,7 +152,11 @@ export function DailyDetails({
     .reduce((a, d) => a + d.price, 0);
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col gap-0 overflow-hidden shadow-sm">
+    <Card
+      className={cn(
+        "flex min-h-0 flex-1 flex-col gap-0 overflow-hidden shadow-sm",
+      )}
+    >
       <Dialog open={dialogChange} onOpenChange={setDialogChange}>
         <DialogContent className="flex max-h-[min(88vh,860px)] w-[min(98vw,1280px)] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-hidden p-4 sm:max-w-[min(98vw,1280px)] sm:p-5 md:max-w-[min(98vw,1280px)] lg:max-w-[min(98vw,1280px)]">
           <DialogTitle className="sr-only">明細編集</DialogTitle>
@@ -217,8 +224,10 @@ export function DailyDetails({
               </DropdownMenuSub>
               <DropdownMenuItem
                 className="cursor-pointer"
-                disabled={budgetId == null}
-                onClick={() => budgetId != null && setDialogChange(true)}
+                disabled={budgetId == null || isMonthConfirmed}
+                onClick={() =>
+                  budgetId != null && !isMonthConfirmed && setDialogChange(true)
+                }
               >
                 <FileEdit size={16} className="mr-2" />
                 明細編集
@@ -226,7 +235,7 @@ export function DailyDetails({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
-                disabled={details.length === 0}
+                disabled={details.length === 0 || isMonthConfirmed}
               >
                 <TrashIcon size={16} className="mr-2" />
                 削除
@@ -237,6 +246,11 @@ export function DailyDetails({
         <CardDescription>
           {budgetId != null ? `家計簿 ID: ${budgetId}` : ""}
         </CardDescription>
+        {isMonthConfirmed ? (
+          <p className="text-muted-foreground pt-1 text-xs">
+            この月は確定済みのため、明細の変更はできません。
+          </p>
+        ) : null}
         {!loading && details.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-sm">
             <div className="flex flex-wrap gap-3">

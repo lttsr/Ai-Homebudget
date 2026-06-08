@@ -1,3 +1,17 @@
+import type { TaskStatusType } from "@/types";
+
+/** 月次家計簿確定情報 */
+export type MonthlyHomeBudget = {
+  baseDate: string; // yyyy-MM
+  statusType: TaskStatusType;
+  incomeTotal: number;
+  expenseTotal: number;
+  balance: number;
+  achievementRate: number;
+  comment?: string;
+  confirmedDate?: string; // yyyy-MM-dd
+};
+
 /** 日次家計簿データ */
 export type DailyHomeBudget = {
   budgetId: number;
@@ -15,6 +29,11 @@ export type HomeBudgetDetail = {
   price: number;
   expensesFlg: boolean;
   memo?: string;
+};
+
+/** 家計設定（全体共通） */
+export type HomeBudgetSettings = {
+  savingsTarget: number;
 };
 
 /** 口座・決済手段マスタ */

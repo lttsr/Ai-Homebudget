@@ -9,6 +9,7 @@ import { MonthlyDetails } from "./MonthlyDetails";
 import type { DailyHomeBudget } from "../types";
 import { useBudget } from "../hooks/use-budget";
 import { format } from "date-fns";
+import { TaskStatusType } from "@/types";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -29,7 +30,9 @@ export const ManagementHome = () => {
   const [chartsDialogOpen, setChartsDialogOpen] = useState(false);
   const [chartsYearMonth, setChartsYearMonth] = useState<string | null>(null);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
-  const { findDailyHomeBudget } = useBudget();
+  const [isSelectedMonthConfirmed, setIsSelectedMonthConfirmed] =
+    useState(false);
+  const { findDailyHomeBudget, findMonthlyHomeBudget } = useBudget();
 
   // 初期表示時 現在月の家計データ取得
   useEffect(() => {
@@ -46,6 +49,7 @@ export const ManagementHome = () => {
       setDataList(result);
       setSelectedDate(undefined);
       setSelectedBudget(undefined);
+      setIsSelectedMonthConfirmed(false);
     },
     [findDailyHomeBudget],
   );
@@ -55,8 +59,18 @@ export const ManagementHome = () => {
     (date: Date | undefined, row: DailyHomeBudget | undefined) => {
       setSelectedDate(date);
       setSelectedBudget(row);
+      if (date == null) {
+        setIsSelectedMonthConfirmed(false);
+        return;
+      }
+      const yearMonth = format(date, "yyyy-MM");
+      void findMonthlyHomeBudget(yearMonth).then((monthly) => {
+        setIsSelectedMonthConfirmed(
+          monthly?.statusType === TaskStatusType.FINISHED,
+        );
+      });
     },
-    [],
+    [findMonthlyHomeBudget],
   );
 
   const onMonthSummaryClick = useCallback((yearMonth: string) => {
@@ -102,7 +116,7 @@ export const ManagementHome = () => {
     <div className="box-border flex h-full min-h-0 w-full flex-col p-3 sm:p-2">
       {/* 月次入出金明細 */}
       <Dialog open={monthlyDialogOpen} onOpenChange={onMonthlyDialogOpenChange}>
-        <DialogContent className="flex max-h-[min(88vh,860px)] w-[min(98vw,1280px)] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-hidden p-4 sm:max-w-[min(98vw,1280px)] sm:p-5 md:max-w-[min(98vw,1280px)] lg:max-w-[min(98vw,1280px)]">
+        <DialogContent className="flex h-[min(88vh,920px)] w-[min(98vw,1280px)] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-hidden p-4 sm:max-w-[min(98vw,1280px)] sm:p-5 md:max-w-[min(98vw,1280px)] lg:max-w-[min(98vw,1280px)]">
           <DialogHeader className="shrink-0">
             <div className="flex items-center">
               <FileText size={14} />
@@ -184,6 +198,7 @@ export const ManagementHome = () => {
                 <DailyDetails
                   budgetId={selectedBudget?.budgetId}
                   baseDate={format(selectedDate, "yyyy/MM/dd")}
+                  isMonthConfirmed={isSelectedMonthConfirmed}
                 />
               )}
             </div>

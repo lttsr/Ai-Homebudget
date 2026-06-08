@@ -9,14 +9,6 @@ import type { AccountMst, CategoryMst, MonthlyBudgetDetailRow } from "../types";
 
 type ChartTab = "category" | "account" | "expense-daily";
 
-function formatYearMonthJapanese(yearMonth: string): string {
-  const [y, m] = yearMonth.split("-");
-  if (y == null || m == null) {
-    return yearMonth;
-  }
-  return `${y}年${Number(m)}月`;
-}
-
 /** グラフの終了日（当月なら今日、過去月なら月末、未来月は 0） */
 function chartEndDay(yearMonth: string): number {
   const [ys, ms] = yearMonth.split("-");
@@ -261,7 +253,8 @@ export function MonthlyCharts({
     if (yearMonth == null) {
       return "月次収支グラフ";
     }
-    return `${formatYearMonthJapanese(yearMonth)} の収支グラフ`;
+    const [y, m] = yearMonth.split("-");
+    return `${y}年${Number(m)}月 の収支グラフ`;
   }, [yearMonth]);
 
   const activePie =
@@ -283,13 +276,15 @@ export function MonthlyCharts({
 
   const expenseChartCaption = useMemo(() => {
     if (yearMonth == null) return "";
+    const [y, m] = yearMonth.split("-");
+    const ymLabel = `${y}年${Number(m)}月`;
     const endDay = chartEndDay(yearMonth);
     const now = new Date();
     const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     if (yearMonth === currentYm) {
-      return `${formatYearMonthJapanese(yearMonth)}1日〜本日（${endDay}日）の支出合計`;
+      return `${ymLabel}1日〜本日（${endDay}日）の支出合計`;
     }
-    return `${formatYearMonthJapanese(yearMonth)}1日〜${endDay}日の支出合計`;
+    return `${ymLabel}1日〜${endDay}日の支出合計`;
   }, [yearMonth]);
 
   return (

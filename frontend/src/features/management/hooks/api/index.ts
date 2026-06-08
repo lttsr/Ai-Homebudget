@@ -4,14 +4,19 @@ import type {
   AccountMst,
   CategoryMst,
   HomeBudgetDetail,
+  HomeBudgetSettings,
   MonthlyBudgetDetailRow,
+  MonthlyHomeBudget,
 } from "../../types";
 import {
   dummyCategory,
   dummyDailyHomeBudgets,
   dummyHomeBudgetDetail,
+  dummyHomeBudgetSettings,
+  dummyMonthlyHomeBudget,
   dummyMonthlyHomeBudgetDetailRows,
   dummyPaymentAccount,
+  dummyUpdateHomeBudgetSettings,
 } from "./dummy-data";
 
 export const findDailyHomeBudget = async (
@@ -66,4 +71,33 @@ export const findMonthlyHomeBudgetDetails = async (
   // return response.data;
   await Promise.resolve();
   return dummyMonthlyHomeBudgetDetailRows(yearMonth);
+};
+
+/** 月次家計簿確定情報を取得します。 */
+export const findMonthlyHomeBudget = async (
+  yearMonth: string,
+): Promise<MonthlyHomeBudget | null> => {
+  // TODO: API
+  // const response = await axios.get("/api/monthly-home-budget", {
+  //   params: { yearMonth },
+  // });
+  // return response.data;
+  await Promise.resolve();
+  return dummyMonthlyHomeBudget(yearMonth);
+};
+
+/** 家計設定（全体共通）を取得します。 */
+export const findHomeBudgetSettings = async (): Promise<HomeBudgetSettings> => {
+  // TODO: API
+  await Promise.resolve();
+  return dummyHomeBudgetSettings();
+};
+
+/** 家計設定（全体共通）を更新します。 */
+export const updateHomeBudgetSettings = async (
+  settings: HomeBudgetSettings,
+): Promise<HomeBudgetSettings> => {
+  // TODO: API
+  await Promise.resolve();
+  return dummyUpdateHomeBudgetSettings(settings);
 };

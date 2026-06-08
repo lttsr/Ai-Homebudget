@@ -3,8 +3,11 @@ import {
   type AccountMst,
   type HomeBudgetDetail,
   type CategoryMst,
+  type HomeBudgetSettings,
   type MonthlyBudgetDetailRow,
+  type MonthlyHomeBudget,
 } from "../../types";
+import { TaskStatusType } from "@/types";
 
 /**
  * ダミー専用 budgetId（日次一覧・明細と揃える）
@@ -690,4 +693,107 @@ export function dummyMonthlyHomeBudgetDetailRows(
   });
 
   return out;
+}
+
+/** ダミー：全体共通の家計設定（モック用メモリ保持） */
+let dummyHomeBudgetSettingsStore: HomeBudgetSettings = {
+  savingsTarget: 100_000,
+};
+
+export function dummyHomeBudgetSettings(): HomeBudgetSettings {
+  return { ...dummyHomeBudgetSettingsStore };
+}
+
+export function dummyUpdateHomeBudgetSettings(
+  settings: HomeBudgetSettings,
+): HomeBudgetSettings {
+  dummyHomeBudgetSettingsStore = { ...settings };
+  return dummyHomeBudgetSettings();
+}
+
+/** 達成率（小数第1位）。balance < 0 は 0% */
+function calcAchievementRate(balance: number, savingsTarget: number): number {
+  if (balance < 0) {
+    return 0;
+  }
+  const rate = (balance / savingsTarget) * 100;
+  return Math.round(rate * 10) / 10;
+}
+
+function monthTotalsFromDaily(ym: string): {
+  incomeTotal: number;
+  expenseTotal: number;
+  balance: number;
+} {
+  const days = dummyDailyHomeBudgets(ym);
+  let incomeTotal = 0;
+  let expenseTotal = 0;
+  for (const d of days) {
+    incomeTotal += d.incomeTotal;
+    expenseTotal += d.expenseTotal;
+  }
+  return {
+    incomeTotal,
+    expenseTotal,
+    balance: incomeTotal - expenseTotal,
+  };
+}
+
+function isPastMonth(ym: string): boolean {
+  const now = new Date();
+  const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  return ym < currentYm;
+}
+
+function lastDayOfMonth(ym: string): string {
+  const [ys, ms] = ym.split("-");
+  const y = Number(ys);
+  const m = Number(ms);
+  const last = new Date(y, m, 0).getDate();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${y}-${pad(m)}-${pad(last)}`;
+}
+
+const DUMMY_MONTHLY_COMMENTS: Record<string, string> = {
+  "2026-04":
+    "支出はおおむね計画内でした。外食とカフェがやや多めですが、収入に対して黒字を維持できています。来月は通信費の見直しも検討してみてください。",
+  "2026-05":
+    "給与収入は安定しており、固定費の支払いも計画どおりに進んでいます。食費・交通費のバランスは良好で、外食やコンビニ利用も前月比ではやや抑えられています。目標貯蓄金額に対する達成率も順調なので、現在のペースを維持できれば十分に黒字を確保できる見込みです。\n\n一方で、通信費とサブスクリプション関連の支出が前月より増加傾向にあります。利用頻度の低いサービスの解約や、家族プランへの見直しを検討すると、さらに貯蓄余地が広がる可能性があります。また、カフェ・書籍カテゴリの支出が週末に集中しているため、平日と休日で使い方を分けると支出の波を抑えやすくなります。\n\n来月に向けては、大きな出費（家電・旅行など）の有無を早めに洗い出し、必要なら支出上限を設定しておくことをおすすめします。全体としては堅実な家計運用ができており、無理のない範囲で貯蓄を積み上げられています。",
+};
+
+/** 月次家計簿確定情報（ダミー） */
+export function dummyMonthlyHomeBudget(ym: string): MonthlyHomeBudget | null {
+  const { incomeTotal, expenseTotal, balance } = monthTotalsFromDaily(ym);
+  const { savingsTarget } = dummyHomeBudgetSettingsStore;
+  const achievementRate = calcAchievementRate(balance, savingsTarget);
+
+  if (isPastMonth(ym)) {
+    return {
+      baseDate: ym,
+      statusType: TaskStatusType.FINISHED,
+      incomeTotal,
+      expenseTotal,
+      balance,
+      achievementRate,
+      comment:
+        DUMMY_MONTHLY_COMMENTS[ym] ??
+        "今月の収支は概ね安定しています。支出の内訳を見直すと、さらに改善の余地がありそうです。",
+      confirmedDate: lastDayOfMonth(ym),
+    };
+  }
+
+  const now = new Date();
+  const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  if (ym === currentYm) {
+    return {
+      baseDate: ym,
+      statusType: TaskStatusType.PENDING,
+      incomeTotal: 0,
+      expenseTotal: 0,
+      balance: 0,
+      achievementRate: 0,
+    };
+  }
+
+  return null;
 }

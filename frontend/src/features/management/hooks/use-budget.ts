@@ -30,11 +30,32 @@ export const useBudget = () => {
     [],
   );
 
+  /** 月次家計簿確定情報を取得します。 */
+  const findMonthlyHomeBudget = useCallback(async (yearMonth: string) => {
+    return await api.findMonthlyHomeBudget(yearMonth);
+  }, []);
+
+  /** 家計設定（全体共通）を取得します。 */
+  const findHomeBudgetSettings = useCallback(async () => {
+    return await api.findHomeBudgetSettings();
+  }, []);
+
+  /** 家計設定（全体共通）を更新します。 */
+  const updateHomeBudgetSettings = useCallback(
+    async (settings: Parameters<typeof api.updateHomeBudgetSettings>[0]) => {
+      return await api.updateHomeBudgetSettings(settings);
+    },
+    [],
+  );
+
   return {
     findDailyHomeBudget,
     findHomeBudgetDetail,
     findCategory,
     findPaymentAccount,
     findMonthlyHomeBudgetDetails,
+    findMonthlyHomeBudget,
+    findHomeBudgetSettings,
+    updateHomeBudgetSettings,
   };
 };

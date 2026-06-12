@@ -4,7 +4,6 @@ import type {
   AccountMst,
   CategoryMst,
   DailyHomeBudgetDetail,
-  HomeBudgetSettings,
   MonthlyBudgetDetailRow,
   MonthlySummary,
 } from "../../types";
@@ -12,11 +11,10 @@ import {
   dummyCategory,
   dummyDailyHomeBudgets,
   dummyDailyHomeBudgetDetail,
-  dummyHomeBudgetSettings,
   dummyMonthlyDetailRows,
   dummyMonthlySummary,
   dummyPaymentAccount,
-  dummyUpdateHomeBudgetSettings,
+  dummyUpdateMonthlySummarySavingsTarget,
 } from "./dummy-data";
 
 export const findDailyHomeBudget = async (
@@ -86,18 +84,17 @@ export const findMonthlySummary = async (
   return dummyMonthlySummary(yearMonth);
 };
 
-/** 家計設定（全体共通）を取得します。 */
-export const findHomeBudgetSettings = async (): Promise<HomeBudgetSettings> => {
+/** 月次サマリーの目標貯蓄金額を更新します。 */
+export const updateMonthlySummarySavingsTarget = async (
+  yearMonth: string,
+  savingsTarget: number,
+): Promise<MonthlySummary | null> => {
   // TODO: API
+  // const response = await axios.patch("/api/monthly-summary/savings-target", {
+  //   baseMonth: yearMonth,
+  //   savingsTarget,
+  // });
+  // return response.data;
   await Promise.resolve();
-  return dummyHomeBudgetSettings();
-};
-
-/** 家計設定（全体共通）を更新します。 */
-export const updateHomeBudgetSettings = async (
-  settings: HomeBudgetSettings,
-): Promise<HomeBudgetSettings> => {
-  // TODO: API
-  await Promise.resolve();
-  return dummyUpdateHomeBudgetSettings(settings);
+  return dummyUpdateMonthlySummarySavingsTarget(yearMonth, savingsTarget);
 };

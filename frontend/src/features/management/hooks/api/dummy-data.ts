@@ -3,7 +3,6 @@ import {
   type AccountMst,
   type DailyHomeBudgetDetail,
   type CategoryMst,
-  type HomeBudgetSettings,
   type MonthlyBudgetDetailRow,
   type MonthlySummary,
 } from "../../types";
@@ -695,35 +694,31 @@ export function dummyMonthlyDetailRows(
   return out;
 }
 
-/** ダミー：全体共通の家計設定（モック用メモリ保持） */
-let dummyHomeBudgetSettingsStore: HomeBudgetSettings = {
-  savingsTarget: 100_000,
-};
+/** ダミー：月ごとの目標貯蓄金額（モック用メモリ保持） */
+const DEFAULT_SAVINGS_TARGET = 100_000;
+const dummyMonthlySavingsTargetStore = new Map<string, number>([
+  ["2026-04", 100_000],
+  ["2026-05", 120_000],
+  ["2026-06", 100_000],
+]);
 
-export function dummyHomeBudgetSettings(): HomeBudgetSettings {
-  return { ...dummyHomeBudgetSettingsStore };
+function getMonthlySavingsTarget(ym: string): number {
+  return dummyMonthlySavingsTargetStore.get(ym) ?? DEFAULT_SAVINGS_TARGET;
 }
 
-export function dummyUpdateHomeBudgetSettings(
-  settings: HomeBudgetSettings,
-): HomeBudgetSettings {
-  dummyHomeBudgetSettingsStore = { ...settings };
-  return dummyHomeBudgetSettings();
-}
-
-/** 達成率（小数第1位）。balance < 0 は 0% */
-function calcAchievementRate(balance: number, savingsTarget: number): number {
-  if (balance < 0) {
+/** 達成率（小数第1位）。savings < 0 は 0% */
+function calcAchievementRate(savings: number, savingsTarget: number): number {
+  if (savings < 0) {
     return 0;
   }
-  const rate = (balance / savingsTarget) * 100;
+  const rate = (savings / savingsTarget) * 100;
   return Math.round(rate * 10) / 10;
 }
 
 function monthTotalsFromDaily(ym: string): {
   incomeTotal: number;
   expenseTotal: number;
-  balance: number;
+  savings: number;
 } {
   const days = dummyDailyHomeBudgets(ym);
   let incomeTotal = 0;
@@ -735,7 +730,7 @@ function monthTotalsFromDaily(ym: string): {
   return {
     incomeTotal,
     expenseTotal,
-    balance: incomeTotal - expenseTotal,
+    savings: incomeTotal - expenseTotal,
   };
 }
 
@@ -763,9 +758,9 @@ const DUMMY_MONTHLY_COMMENTS: Record<string, string> = {
 
 /** 月次家計簿確定情報（ダミー） */
 export function dummyMonthlySummary(ym: string): MonthlySummary | null {
-  const { incomeTotal, expenseTotal, balance } = monthTotalsFromDaily(ym);
-  const { savingsTarget } = dummyHomeBudgetSettingsStore;
-  const achievementRate = calcAchievementRate(balance, savingsTarget);
+  const { incomeTotal, expenseTotal, savings } = monthTotalsFromDaily(ym);
+  const savingsTarget = getMonthlySavingsTarget(ym);
+  const achievementRate = calcAchievementRate(savings, savingsTarget);
 
   if (isPastMonth(ym)) {
     return {
@@ -773,7 +768,8 @@ export function dummyMonthlySummary(ym: string): MonthlySummary | null {
       statusType: TaskStatusType.FINISHED,
       incomeTotal,
       expenseTotal,
-      balance,
+      savings,
+      savingsTarget,
       achievementRate,
       comment:
         DUMMY_MONTHLY_COMMENTS[ym] ??
@@ -790,10 +786,24 @@ export function dummyMonthlySummary(ym: string): MonthlySummary | null {
       statusType: TaskStatusType.PENDING,
       incomeTotal: 0,
       expenseTotal: 0,
-      balance: 0,
+      savings: 0,
+      savingsTarget,
       achievementRate: 0,
     };
   }
 
   return null;
+}
+
+/** 月次サマリーの目標貯蓄金額のみ更新（ダミー） */
+export function dummyUpdateMonthlySummarySavingsTarget(
+  yearMonth: string,
+  savingsTarget: number,
+): MonthlySummary | null {
+  dummyMonthlySavingsTargetStore.set(yearMonth, savingsTarget);
+  const current = dummyMonthlySummary(yearMonth);
+  if (current == null) {
+    return null;
+  }
+  return { ...current, savingsTarget };
 }

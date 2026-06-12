@@ -254,8 +254,8 @@ function Calendar({
                 {childArr[0]}
                 {summary != null &&
                   (() => {
-                    const balance = summary.incomeTotal - summary.expenseTotal;
-                    const is_positive = balance >= 0;
+                    const savings = summary.incomeTotal - summary.expenseTotal;
+                    const is_positive = savings >= 0;
                     const body = (
                       <>
                         <div className="flex items-center justify-between bg-muted/40 px-4 py-2.5">
@@ -272,7 +272,7 @@ function Calendar({
                             )}
                           >
                             {is_positive ? "+" : ""}
-                            {balance.toLocaleString()} 円
+                            {savings.toLocaleString()} 円
                           </span>
                         </div>
                         <div className="grid grid-cols-2 divide-x border-t text-sm">

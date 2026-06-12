@@ -6,7 +6,8 @@ export type MonthlySummary = {
   statusType: TaskStatusType;
   incomeTotal: number;
   expenseTotal: number;
-  balance: number;
+  savings: number;
+  savingsTarget: number;
   achievementRate: number;
   comment?: string;
   confirmedDate?: string; // yyyy-MM-dd
@@ -29,11 +30,6 @@ export type DailyHomeBudgetDetail = {
   price: number;
   expensesFlg: boolean;
   memo?: string;
-};
-
-/** 家計設定（全体共通） */
-export type HomeBudgetSettings = {
-  savingsTarget: number;
 };
 
 /** 口座・決済手段マスタ */

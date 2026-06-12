@@ -10,6 +10,8 @@ import {
   Wallet,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { TaskStatusType } from "@/types";
 import { useBudget } from "../hooks/use-budget";
@@ -30,11 +32,14 @@ export function MonthlyDetails({
     findMonthlySummary,
     findMonthlyDetails,
     findCategory,
+    updateMonthlySummarySavingsTarget,
   } = useBudget();
   const [monthly, setMonthly] = useState<MonthlySummary | null>(null);
   const [rows, setRows] = useState<MonthlyBudgetDetailRow[]>([]);
   const [categories, setCategories] = useState<CategoryMst[]>([]);
   const [loading, setLoading] = useState(false);
+  const [savingsTargetInput, setSavingsTargetInput] = useState("");
+  const [savingTarget, setSavingTarget] = useState(false);
 
   useEffect(() => {
     if (!open || yearMonth == null) {
@@ -53,6 +58,9 @@ export function MonthlyDetails({
           setMonthly(monthlyResult);
           setRows(detailRows);
           setCategories(cats);
+          if (monthlyResult != null) {
+            setSavingsTargetInput(String(monthlyResult.savingsTarget));
+          }
         }
       } finally {
         if (!cancelled) {
@@ -92,6 +100,33 @@ export function MonthlyDetails({
     return [...m.entries()].sort(([a], [b]) => a.localeCompare(b));
   }, [rows]);
 
+  const handleSavingsTargetConfirm = useCallback(async () => {
+    if (yearMonth == null) {
+      return;
+    }
+    const parsed = Number(savingsTargetInput.replace(/,/g, ""));
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return;
+    }
+    setSavingTarget(true);
+    try {
+      const updated = await updateMonthlySummarySavingsTarget(
+        yearMonth,
+        parsed,
+      );
+      if (updated != null) {
+        setMonthly(updated);
+        setSavingsTargetInput(String(updated.savingsTarget));
+      }
+    } finally {
+      setSavingTarget(false);
+    }
+  }, [
+    yearMonth,
+    savingsTargetInput,
+    updateMonthlySummarySavingsTarget,
+  ]);
+
   if (!open || yearMonth == null) {
     return null;
   }
@@ -113,34 +148,72 @@ export function MonthlyDetails({
   }
 
   const isFinished = monthly.statusType === TaskStatusType.FINISHED;
-  const balancePositive = monthly.balance >= 0;
+  const savingsPositive = monthly.savings >= 0;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold",
-            isFinished
-              ? "border-emerald-200/80 bg-emerald-500/10 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300"
-              : "border-amber-200/80 bg-amber-500/10 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300",
-          )}
-        >
-          {isFinished ? (
-            <CheckCircle2 className="size-3.5 shrink-0" aria-hidden />
-          ) : (
-            <CircleDashed className="size-3.5 shrink-0" aria-hidden />
-          )}
-          {isFinished ? "確定" : "未確定"}
-        </span>
-        {isFinished && monthly.confirmedDate != null ? (
-          <span className="text-muted-foreground text-xs">
-            確定日:{" "}
-            {format(parseISO(monthly.confirmedDate), "yyyy年M月d日", {
-              locale: ja,
-            })}
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold",
+              isFinished
+                ? "border-emerald-200/80 bg-emerald-500/10 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300"
+                : "border-amber-200/80 bg-amber-500/10 text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300",
+            )}
+          >
+            {isFinished ? (
+              <CheckCircle2 className="size-3.5 shrink-0" aria-hidden />
+            ) : (
+              <CircleDashed className="size-3.5 shrink-0" aria-hidden />
+            )}
+            {isFinished ? "確定" : "未確定"}
           </span>
-        ) : null}
+          {isFinished && monthly.confirmedDate != null ? (
+            <span className="text-muted-foreground text-xs">
+              確定日:{" "}
+              {format(parseISO(monthly.confirmedDate), "yyyy年M月d日", {
+                locale: ja,
+              })}
+            </span>
+          ) : null}
+        </div>
+
+        {isFinished ? (
+          <span className="text-muted-foreground text-xs sm:ml-auto">
+            目標貯蓄: {monthly.savingsTarget.toLocaleString()} 円
+          </span>
+        ) : (
+          <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+            <label
+              htmlFor="monthly-savings-target"
+              className="text-muted-foreground shrink-0 text-xs font-medium"
+            >
+              目標貯蓄金額
+            </label>
+            <Input
+              id="monthly-savings-target"
+              name="monthly_savings_target"
+              type="number"
+              min={1}
+              step={1000}
+              value={savingsTargetInput}
+              placeholder="例：100000"
+              className="h-8 w-32"
+              onChange={(e) => setSavingsTargetInput(e.target.value)}
+            />
+            <span className="text-muted-foreground text-xs">円</span>
+            <Button
+              type="button"
+              size="sm"
+              className="h-8 shrink-0"
+              disabled={savingTarget}
+              onClick={() => void handleSavingsTargetConfirm()}
+            >
+              {savingTarget ? "保存中…" : "確定"}
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid shrink-0 grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4 sm:gap-3">
@@ -172,13 +245,13 @@ export function MonthlyDetails({
           <p
             className={cn(
               "text-lg font-bold tabular-nums sm:text-xl",
-              balancePositive
+              savingsPositive
                 ? "text-emerald-600 dark:text-emerald-400"
                 : "text-red-600 dark:text-red-400",
             )}
           >
-            {balancePositive ? "+" : ""}
-            {monthly.balance.toLocaleString()}
+            {savingsPositive ? "+" : ""}
+            {monthly.savings.toLocaleString()}
             <span className="ml-1 text-sm font-semibold">円</span>
           </p>
         </div>

@@ -415,74 +415,6 @@ function PaymentSettingsPanel({
   );
 }
 
-function MonthlyBatchSettingsPanel({
-  savingsTarget,
-  onSave,
-  saving,
-}: {
-  savingsTarget: number;
-  onSave: (value: number) => Promise<void>;
-  saving: boolean;
-}) {
-  const [input, setInput] = useState(String(savingsTarget));
-
-  const handleSave = useCallback(async () => {
-    const parsed = Number(input.replace(/,/g, ""));
-    if (!Number.isFinite(parsed) || parsed <= 0) return;
-    await onSave(parsed);
-  }, [input, onSave]);
-
-  return (
-    <div className="space-y-6">
-      <header>
-        <span className="block text-lg font-semibold">月次集計</span>
-        <p className="text-muted-foreground mt-1 text-sm">
-          月末バッチで月次の集計・確定を行います。目標貯蓄金額は全体共通の設定です。
-          <br />
-          確定済の月は日次明細の編集ができなくなります。未確定の当月は引き続き編集可能です。
-        </p>
-      </header>
-
-      <section className="rounded-xl border border-border bg-card p-4 shadow-sm">
-        <span className="block text-sm font-semibold">目標貯蓄金額の設定</span>
-        <p className="text-muted-foreground mt-1 text-xs">
-          （収入－支出）÷目標貯蓄金額×100が達成率として算出されます。
-          <br />
-          例：収入300,000円、支出250,000円、目標貯蓄金額100,000円の場合、達成率は50%となります。
-        </p>
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="min-w-0 flex-1 space-y-1.5">
-            <label
-              htmlFor="settings-savings-target"
-              className="text-muted-foreground text-xs font-medium"
-            >
-              金額（円）
-            </label>
-            <Input
-              id="settings-savings-target"
-              name="savings_target"
-              type="number"
-              min={1}
-              step={1000}
-              value={input}
-              placeholder="例：100000"
-              onChange={(e) => setInput(e.target.value)}
-            />
-          </div>
-          <Button
-            type="button"
-            className="shrink-0"
-            disabled={saving}
-            onClick={() => void handleSave()}
-          >
-            {saving ? "保存中…" : "保存"}
-          </Button>
-        </div>
-      </section>
-    </div>
-  );
-}
-
 function PlaceholderPanel({
   title,
   body,
@@ -510,17 +442,10 @@ function PlaceholderPanel({
 }
 
 export function Settings() {
-  const {
-    findCategory,
-    findPaymentAccount,
-    findHomeBudgetSettings,
-    updateHomeBudgetSettings,
-  } = useBudget();
+  const { findCategory, findPaymentAccount } = useBudget();
   const [section, setSection] = useState<SettingsSection>("category");
   const [categories, setCategories] = useState<CategoryMst[]>([]);
   const [accounts, setAccounts] = useState<AccountMst[]>([]);
-  const [savingsTarget, setSavingsTarget] = useState(0);
-  const [settingsSaving, setSettingsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [graphDefaultTab, setGraphDefaultTab] = useState<
     "category" | "account" | "expense-daily"
@@ -531,15 +456,13 @@ export function Settings() {
     void (async () => {
       setLoading(true);
       try {
-        const [cats, accs, settings] = await Promise.all([
+        const [cats, accs] = await Promise.all([
           findCategory(),
           findPaymentAccount(),
-          findHomeBudgetSettings(),
         ]);
         if (!cancelled) {
           setCategories(cats);
           setAccounts(accs);
-          setSavingsTarget(settings.savingsTarget);
         }
       } catch {
         if (!cancelled) {
@@ -553,22 +476,7 @@ export function Settings() {
     return () => {
       cancelled = true;
     };
-  }, [findCategory, findPaymentAccount, findHomeBudgetSettings]);
-
-  const saveSavingsTarget = useCallback(
-    async (value: number) => {
-      setSettingsSaving(true);
-      try {
-        const updated = await updateHomeBudgetSettings({
-          savingsTarget: value,
-        });
-        setSavingsTarget(updated.savingsTarget);
-      } finally {
-        setSettingsSaving(false);
-      }
-    },
-    [updateHomeBudgetSettings],
-  );
+  }, [findCategory, findPaymentAccount]);
 
   const addCategory = useCallback((name: string, color: string) => {
     setCategories((prev) => [
@@ -617,11 +525,9 @@ export function Settings() {
           ) : section === "payment" ? (
             <PaymentSettingsPanel accounts={accounts} onAdd={addAccount} />
           ) : section === "monthly-batch" ? (
-            <MonthlyBatchSettingsPanel
-              key={savingsTarget}
-              savingsTarget={savingsTarget}
-              saving={settingsSaving}
-              onSave={saveSavingsTarget}
+            <PlaceholderPanel
+              title="月次集計"
+              body="月末バッチで月次サマリーの集計・確定を行います。目標貯蓄金額は月次入出金明細ダイアログから月ごとに設定できます。確定済みの月は日次明細の編集ができなくなります。"
             />
           ) : section === "display" ? (
             <div className="space-y-6">

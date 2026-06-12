@@ -19,7 +19,7 @@ import {
   InfoIcon,
 } from "lucide-react";
 import { useBudget } from "../hooks/use-budget";
-import type { CategoryMst, HomeBudgetDetail } from "../types";
+import type { CategoryMst, DailyHomeBudgetDetail } from "../types";
 import {
   Dialog,
   DialogContent,
@@ -54,8 +54,8 @@ export function DailyDetails({
   baseDate: string;
   isMonthConfirmed?: boolean;
 }) {
-  const { findHomeBudgetDetail, findCategory } = useBudget();
-  const [details, setDetails] = useState<HomeBudgetDetail[]>([]);
+  const { findDailyHomeBudgetDetail, findCategory } = useBudget();
+  const [details, setDetails] = useState<DailyHomeBudgetDetail[]>([]);
   const [categories, setCategories] = useState<CategoryMst[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogChange, setDialogChange] = useState(false);
@@ -78,14 +78,14 @@ export function DailyDetails({
       } else {
         setLoading(true);
         try {
-          const result = await findHomeBudgetDetail(budgetId);
+          const result = await findDailyHomeBudgetDetail(budgetId);
           setDetails(result);
         } finally {
           setLoading(false);
         }
       }
     })();
-  }, [findHomeBudgetDetail, findCategory, budgetId]);
+  }, [findDailyHomeBudgetDetail, findCategory, budgetId]);
 
   /** カテゴリIDと名前のマッピングを生成します。 */
   const categoryNameById = useMemo(
@@ -172,7 +172,7 @@ export function DailyDetails({
                 budgetId={budgetId}
                 details={details}
                 updated={async () => {
-                  const result = await findHomeBudgetDetail(budgetId);
+                  const result = await findDailyHomeBudgetDetail(budgetId);
                   setDetails(result);
                   setDialogChange(false);
                 }}

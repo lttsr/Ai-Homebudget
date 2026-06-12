@@ -3,18 +3,18 @@ import type {
   DailyHomeBudget,
   AccountMst,
   CategoryMst,
-  HomeBudgetDetail,
+  DailyHomeBudgetDetail,
   HomeBudgetSettings,
   MonthlyBudgetDetailRow,
-  MonthlyHomeBudget,
+  MonthlySummary,
 } from "../../types";
 import {
   dummyCategory,
   dummyDailyHomeBudgets,
-  dummyHomeBudgetDetail,
+  dummyDailyHomeBudgetDetail,
   dummyHomeBudgetSettings,
-  dummyMonthlyHomeBudget,
-  dummyMonthlyHomeBudgetDetailRows,
+  dummyMonthlyDetailRows,
+  dummyMonthlySummary,
   dummyPaymentAccount,
   dummyUpdateHomeBudgetSettings,
 } from "./dummy-data";
@@ -31,16 +31,16 @@ export const findDailyHomeBudget = async (
   return dummyDailyHomeBudgets(baseDate);
 };
 
-export const findHomeBudgetDetail = async (
+export const findDailyHomeBudgetDetail = async (
   budgetId: number,
-): Promise<HomeBudgetDetail[]> => {
+): Promise<DailyHomeBudgetDetail[]> => {
   // TODO: API
-  // const response = await axios.get("/api/home-budget-meisai", {
+  // const response = await axios.get("/api/daily-home-budget-detail", {
   //   params: { budgetId },
   // });
   // return response.data;
   await Promise.resolve();
-  return dummyHomeBudgetDetail(budgetId);
+  return dummyDailyHomeBudgetDetail(budgetId);
 };
 
 export const findCategory = async (): Promise<CategoryMst[]> => {
@@ -61,29 +61,29 @@ export const findPaymentAccount =
   };
 
 /** 月次の全明細（日付昇順・実API接続時は params: { yearMonth } 想定） */
-export const findMonthlyHomeBudgetDetails = async (
+export const findMonthlyDetails = async (
   yearMonth: string,
 ): Promise<MonthlyBudgetDetailRow[]> => {
   // TODO: API
-  // const response = await axios.get("/api/monthly-home-budget-details", {
+  // const response = await axios.get("/api/monthly-details", {
   //   params: { yearMonth },
   // });
   // return response.data;
   await Promise.resolve();
-  return dummyMonthlyHomeBudgetDetailRows(yearMonth);
+  return dummyMonthlyDetailRows(yearMonth);
 };
 
-/** 月次家計簿確定情報を取得します。 */
-export const findMonthlyHomeBudget = async (
+/** 月次サマリーを取得します。 */
+export const findMonthlySummary = async (
   yearMonth: string,
-): Promise<MonthlyHomeBudget | null> => {
+): Promise<MonthlySummary | null> => {
   // TODO: API
-  // const response = await axios.get("/api/monthly-home-budget", {
+  // const response = await axios.get("/api/monthly-summary", {
   //   params: { yearMonth },
   // });
   // return response.data;
   await Promise.resolve();
-  return dummyMonthlyHomeBudget(yearMonth);
+  return dummyMonthlySummary(yearMonth);
 };
 
 /** 家計設定（全体共通）を取得します。 */

@@ -16,7 +16,7 @@ import { useBudget } from "../hooks/use-budget";
 import type {
   CategoryMst,
   MonthlyBudgetDetailRow,
-  MonthlyHomeBudget,
+  MonthlySummary,
 } from "../types";
 
 export function MonthlyDetails({
@@ -27,11 +27,11 @@ export function MonthlyDetails({
   yearMonth: string | null;
 }) {
   const {
-    findMonthlyHomeBudget,
-    findMonthlyHomeBudgetDetails,
+    findMonthlySummary,
+    findMonthlyDetails,
     findCategory,
   } = useBudget();
-  const [monthly, setMonthly] = useState<MonthlyHomeBudget | null>(null);
+  const [monthly, setMonthly] = useState<MonthlySummary | null>(null);
   const [rows, setRows] = useState<MonthlyBudgetDetailRow[]>([]);
   const [categories, setCategories] = useState<CategoryMst[]>([]);
   const [loading, setLoading] = useState(false);
@@ -45,8 +45,8 @@ export function MonthlyDetails({
       setLoading(true);
       try {
         const [monthlyResult, detailRows, cats] = await Promise.all([
-          findMonthlyHomeBudget(yearMonth),
-          findMonthlyHomeBudgetDetails(yearMonth),
+          findMonthlySummary(yearMonth),
+          findMonthlyDetails(yearMonth),
           findCategory(),
         ]);
         if (!cancelled) {
@@ -66,8 +66,8 @@ export function MonthlyDetails({
   }, [
     open,
     yearMonth,
-    findMonthlyHomeBudget,
-    findMonthlyHomeBudgetDetails,
+    findMonthlySummary,
+    findMonthlyDetails,
     findCategory,
   ]);
 

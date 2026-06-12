@@ -1,8 +1,8 @@
 import type { TaskStatusType } from "@/types";
 
 /** 月次家計簿確定情報 */
-export type MonthlyHomeBudget = {
-  baseDate: string; // yyyy-MM
+export type MonthlySummary = {
+  baseMonth: string; // yyyy-MM
   statusType: TaskStatusType;
   incomeTotal: number;
   expenseTotal: number;
@@ -20,8 +20,8 @@ export type DailyHomeBudget = {
   expenseTotal: number;
 };
 
-/** 家計簿の明細データ */
-export type HomeBudgetDetail = {
+/** 日次家計簿の明細データ */
+export type DailyHomeBudgetDetail = {
   budgetId: number;
   detailId: number;
   categoryId: number;
@@ -50,6 +50,6 @@ export type CategoryMst = {
 };
 
 /** 月次ダイアログ用：日付付き明細（date: yyyy-MM-dd） */
-export type MonthlyBudgetDetailRow = HomeBudgetDetail & {
+export type MonthlyBudgetDetailRow = DailyHomeBudgetDetail & {
   date: string;
 };

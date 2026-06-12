@@ -80,7 +80,7 @@ export function MonthlyCharts({
   onOpenChange: (open: boolean) => void;
   yearMonth: string | null;
 }) {
-  const { findMonthlyHomeBudgetDetails, findCategory, findPaymentAccount } =
+  const { findMonthlyDetails, findCategory, findPaymentAccount } =
     useBudget();
   const [tab, setTab] = useState<ChartTab>("category");
   const [rows, setRows] = useState<MonthlyBudgetDetailRow[]>([]);
@@ -95,7 +95,7 @@ export function MonthlyCharts({
       try {
         setLoading(true);
         const [detailRows, cats, accs] = await Promise.all([
-          findMonthlyHomeBudgetDetails(yearMonth),
+          findMonthlyDetails(yearMonth),
           findCategory(),
           findPaymentAccount(),
         ]);
@@ -119,7 +119,7 @@ export function MonthlyCharts({
   }, [
     open,
     yearMonth,
-    findMonthlyHomeBudgetDetails,
+    findMonthlyDetails,
     findCategory,
     findPaymentAccount,
   ]);

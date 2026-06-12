@@ -1,11 +1,11 @@
 import {
   type DailyHomeBudget,
   type AccountMst,
-  type HomeBudgetDetail,
+  type DailyHomeBudgetDetail,
   type CategoryMst,
   type HomeBudgetSettings,
   type MonthlyBudgetDetailRow,
-  type MonthlyHomeBudget,
+  type MonthlySummary,
 } from "../../types";
 import { TaskStatusType } from "@/types";
 
@@ -57,7 +57,7 @@ export const DUMMY_PAYMENT_ACCOUNT_MASTER: AccountMst[] = [
 /** 明細マスタから、budgetId 単位の収入・支出合計。 */
 export function totalsFromDetailsForBudget(
   budgetId: number,
-  details: HomeBudgetDetail[],
+  details: DailyHomeBudgetDetail[],
 ): { incomeTotal: number; expenseTotal: number } {
   let incomeTotal = 0;
   let expenseTotal = 0;
@@ -75,7 +75,7 @@ export function totalsFromDetailsForBudget(
 /**
  * 家計明細ダミー（budgetId は dummyBudgetId(2026, m, d) と一致させる）
  */
-export const DUMMY_HOME_BUDGET_DETAILS_MASTER: HomeBudgetDetail[] = [
+export const DUMMY_DAILY_HOME_BUDGET_DETAILS_MASTER: DailyHomeBudgetDetail[] = [
   // --- 2026-04 ---
   {
     budgetId: dummyBudgetId(2026, 4, 1),
@@ -635,7 +635,7 @@ export const DUMMY_HOME_BUDGET_DETAILS_MASTER: HomeBudgetDetail[] = [
   },
 ];
 
-/** 一時: yyyy-MM の日次一覧（合計は DUMMY_HOME_BUDGET_DETAILS_MASTER と整合） */
+/** 一時: yyyy-MM の日次一覧（合計は DUMMY_DAILY_HOME_BUDGET_DETAILS_MASTER と整合） */
 export function dummyDailyHomeBudgets(ym: string): DailyHomeBudget[] {
   const parts = ym.split("-").map(Number);
   const y = parts[0] ?? 2026;
@@ -647,7 +647,7 @@ export function dummyDailyHomeBudgets(ym: string): DailyHomeBudget[] {
     const budgetId = dummyBudgetId(y, m, d);
     const { incomeTotal, expenseTotal } = totalsFromDetailsForBudget(
       budgetId,
-      DUMMY_HOME_BUDGET_DETAILS_MASTER,
+      DUMMY_DAILY_HOME_BUDGET_DETAILS_MASTER,
     );
     return {
       budgetId,
@@ -658,8 +658,8 @@ export function dummyDailyHomeBudgets(ym: string): DailyHomeBudget[] {
   });
 }
 
-export function dummyHomeBudgetDetail(budgetId: number): HomeBudgetDetail[] {
-  return DUMMY_HOME_BUDGET_DETAILS_MASTER.filter(
+export function dummyDailyHomeBudgetDetail(budgetId: number): DailyHomeBudgetDetail[] {
+  return DUMMY_DAILY_HOME_BUDGET_DETAILS_MASTER.filter(
     (row) => row.budgetId === budgetId,
   );
 }
@@ -673,14 +673,14 @@ export function dummyPaymentAccount(): AccountMst[] {
 }
 
 /** 月次モーダル用のフラット明細（日付昇順） */
-export function dummyMonthlyHomeBudgetDetailRows(
+export function dummyMonthlyDetailRows(
   yearMonth: string,
 ): MonthlyBudgetDetailRow[] {
   const days = dummyDailyHomeBudgets(yearMonth);
   const idToDate = new Map(days.map((d) => [d.budgetId, d.date] as const));
   const out: MonthlyBudgetDetailRow[] = [];
 
-  for (const row of DUMMY_HOME_BUDGET_DETAILS_MASTER) {
+  for (const row of DUMMY_DAILY_HOME_BUDGET_DETAILS_MASTER) {
     const date = idToDate.get(row.budgetId);
     if (date == null) continue;
     out.push({ ...row, date });
@@ -762,14 +762,14 @@ const DUMMY_MONTHLY_COMMENTS: Record<string, string> = {
 };
 
 /** 月次家計簿確定情報（ダミー） */
-export function dummyMonthlyHomeBudget(ym: string): MonthlyHomeBudget | null {
+export function dummyMonthlySummary(ym: string): MonthlySummary | null {
   const { incomeTotal, expenseTotal, balance } = monthTotalsFromDaily(ym);
   const { savingsTarget } = dummyHomeBudgetSettingsStore;
   const achievementRate = calcAchievementRate(balance, savingsTarget);
 
   if (isPastMonth(ym)) {
     return {
-      baseDate: ym,
+      baseMonth: ym,
       statusType: TaskStatusType.FINISHED,
       incomeTotal,
       expenseTotal,
@@ -786,7 +786,7 @@ export function dummyMonthlyHomeBudget(ym: string): MonthlyHomeBudget | null {
   const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   if (ym === currentYm) {
     return {
-      baseDate: ym,
+      baseMonth: ym,
       statusType: TaskStatusType.PENDING,
       incomeTotal: 0,
       expenseTotal: 0,

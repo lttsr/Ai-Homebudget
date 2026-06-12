@@ -7,9 +7,9 @@ export const useBudget = () => {
     return await api.findDailyHomeBudget(baseDate);
   }, []);
 
-  /** 家計簿の明細データを取得します。 */
-  const findHomeBudgetDetail = useCallback(async (budgetId: number) => {
-    return await api.findHomeBudgetDetail(budgetId);
+  /** 日次家計簿の明細データを取得します。 */
+  const findDailyHomeBudgetDetail = useCallback(async (budgetId: number) => {
+    return await api.findDailyHomeBudgetDetail(budgetId);
   }, []);
 
   /** カテゴリマスタを取得します。 */
@@ -23,16 +23,13 @@ export const useBudget = () => {
   }, []);
 
   /** 月次の入出金明細（日付順）を取得します。 */
-  const findMonthlyHomeBudgetDetails = useCallback(
-    async (yearMonth: string) => {
-      return await api.findMonthlyHomeBudgetDetails(yearMonth);
-    },
-    [],
-  );
+  const findMonthlyDetails = useCallback(async (yearMonth: string) => {
+    return await api.findMonthlyDetails(yearMonth);
+  }, []);
 
-  /** 月次家計簿確定情報を取得します。 */
-  const findMonthlyHomeBudget = useCallback(async (yearMonth: string) => {
-    return await api.findMonthlyHomeBudget(yearMonth);
+  /** 月次サマリーを取得します。 */
+  const findMonthlySummary = useCallback(async (yearMonth: string) => {
+    return await api.findMonthlySummary(yearMonth);
   }, []);
 
   /** 家計設定（全体共通）を取得します。 */
@@ -50,11 +47,11 @@ export const useBudget = () => {
 
   return {
     findDailyHomeBudget,
-    findHomeBudgetDetail,
+    findDailyHomeBudgetDetail,
     findCategory,
     findPaymentAccount,
-    findMonthlyHomeBudgetDetails,
-    findMonthlyHomeBudget,
+    findMonthlyDetails,
+    findMonthlySummary,
     findHomeBudgetSettings,
     updateHomeBudgetSettings,
   };

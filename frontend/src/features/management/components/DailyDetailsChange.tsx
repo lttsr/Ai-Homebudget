@@ -21,7 +21,7 @@ import { useBudget } from "../hooks/use-budget";
 import type {
   AccountMst,
   CategoryMst,
-  HomeBudgetDetail,
+  DailyHomeBudgetDetail,
 } from "../types";
 
 type DraftRow = {
@@ -35,7 +35,7 @@ type DraftRow = {
   memo?: string;
 };
 
-function rowsFromDetails(list: HomeBudgetDetail[]): DraftRow[] {
+function rowsFromDetails(list: DailyHomeBudgetDetail[]): DraftRow[] {
   return list.map((d) => ({
     clientKey: `existing-${d.detailId}`,
     sourceDetailId: d.detailId,
@@ -54,7 +54,7 @@ export function DailyDetailsChange({
   updated,
 }: {
   budgetId: number;
-  details: HomeBudgetDetail[];
+  details: DailyHomeBudgetDetail[];
   updated: () => void | Promise<void>;
 }) {
   const { findCategory, findPaymentAccount } = useBudget();

@@ -32,7 +32,7 @@ export const ManagementHome = () => {
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [isSelectedMonthConfirmed, setIsSelectedMonthConfirmed] =
     useState(false);
-  const { findDailyHomeBudget, findMonthlyHomeBudget } = useBudget();
+  const { findDailyHomeBudget, findMonthlySummary } = useBudget();
 
   // 初期表示時 現在月の家計データ取得
   useEffect(() => {
@@ -64,13 +64,13 @@ export const ManagementHome = () => {
         return;
       }
       const yearMonth = format(date, "yyyy-MM");
-      void findMonthlyHomeBudget(yearMonth).then((monthly) => {
+      void findMonthlySummary(yearMonth).then((monthly) => {
         setIsSelectedMonthConfirmed(
           monthly?.statusType === TaskStatusType.FINISHED,
         );
       });
     },
-    [findMonthlyHomeBudget],
+    [findMonthlySummary],
   );
 
   const onMonthSummaryClick = useCallback((yearMonth: string) => {

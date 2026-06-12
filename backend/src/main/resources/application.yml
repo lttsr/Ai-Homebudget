@@ -1,0 +1,22 @@
+server:
+  port: 8090
+spring:
+  application:
+    name: HomeBudgetAI-api
+  jpa:
+    open-in-view: false
+  messages:
+    basename: messages-validation, messages
+
+app:
+  server:
+    base-url: ${SERVER_BASE_URL:http://localhost:8090}
+  db:
+    url: ${JDBC_URL:jdbc:postgresql://HomeBudgetAI-db:5432/postgres}
+    username: ${JDBC_USERNAME:postgres}
+    password: ${JDBC_PASSWORD:password}
+    jpa:
+      package-to-scan:
+        - api.context
+        - api.model
+      hibernate.ddl-auto: none

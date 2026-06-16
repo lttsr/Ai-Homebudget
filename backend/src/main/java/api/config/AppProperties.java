@@ -1,5 +1,7 @@
 package api.config;
 
+import java.util.List;
+
 import javax.sql.DataSource;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -26,6 +28,7 @@ public class AppProperties {
     @Data
     public static class ServerProps {
         private String baseUrl;
+        private List<String> corsAllowedOriginPatterns;
     }
 
     /**

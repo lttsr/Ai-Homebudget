@@ -5,7 +5,8 @@ import PieGraph, { type PieGraphData } from "@/components/graph/PieGraph";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useBudget } from "../hooks/use-budget";
-import type { AccountMst, CategoryMst, MonthlyBudgetDetailRow } from "../types";
+import type { PaymentAccount, BudgetCategory, MonthlyBudgetDetailRow } from "../types";
+import { ExpenseType } from "@/types";
 
 type ChartTab = "category" | "account" | "expense-daily";
 
@@ -50,11 +51,11 @@ function buildExpenseYAxisTicks(max: number): number[] {
 /** ツールチップ用：その日の支出明細のみテキスト化 */
 function formatExpenseRowsForTooltip(
   list: MonthlyBudgetDetailRow[],
-  categoryById: Map<number, CategoryMst>,
-  accountById: Map<number, AccountMst>,
+  categoryById: Map<number, BudgetCategory>,
+  accountById: Map<number, PaymentAccount>,
 ): string {
   const sorted = [...list]
-    .filter((r) => r.expensesFlg)
+    .filter((r) => r.expenseType === ExpenseType.EXPENSE)
     .sort((a, b) => a.detailId - b.detailId);
   if (sorted.length === 0) {
     return "";
@@ -84,8 +85,8 @@ export function MonthlyCharts({
     useBudget();
   const [tab, setTab] = useState<ChartTab>("category");
   const [rows, setRows] = useState<MonthlyBudgetDetailRow[]>([]);
-  const [categories, setCategories] = useState<CategoryMst[]>([]);
-  const [accounts, setAccounts] = useState<AccountMst[]>([]);
+  const [categories, setCategories] = useState<BudgetCategory[]>([]);
+  const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -133,7 +134,10 @@ export function MonthlyCharts({
     [accounts],
   );
 
-  const expenseRows = useMemo(() => rows.filter((r) => r.expensesFlg), [rows]);
+  const expenseRows = useMemo(
+    () => rows.filter((r) => r.expenseType === ExpenseType.EXPENSE),
+    [rows],
+  );
 
   const categoryPie: PieGraphData | null = useMemo(() => {
     const totals = new Map<number, number>();

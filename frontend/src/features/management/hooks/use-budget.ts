@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import * as api from "./api";
+import type { UpdateDailyHomeBudgetDetail } from "../types";
 
 export const useBudget = () => {
   /** 月次家計簿データを取得します。 */
@@ -12,14 +13,35 @@ export const useBudget = () => {
     return await api.findDailyHomeBudgetDetail(budgetId);
   }, []);
 
+  /** 日次家計簿の明細データを追加・更新します。 */
+  const updateDailyHomeBudgetDetails = useCallback(
+    async (budgetId: number, details: UpdateDailyHomeBudgetDetail[]) => {
+      return await api.updateDailyHomeBudgetDetails(budgetId, details);
+    },
+    [],
+  );
+
   /** カテゴリマスタを取得します。 */
   const findCategory = useCallback(async () => {
     return await api.findCategory();
   }, []);
 
+  /** 家計カテゴリを登録します。 */
+  const registerBudgetCategory = useCallback(
+    async (name: string, color: string) => {
+      return await api.registerBudgetCategory(name, color);
+    },
+    [],
+  );
+
   /** 口座・決済手段マスタを取得します。 */
   const findPaymentAccount = useCallback(async () => {
     return await api.findPaymentAccount();
+  }, []);
+
+  /** 口座・決済手段マスタを登録します。 */
+  const registerPaymentAccount = useCallback(async (name: string) => {
+    return await api.registerPaymentAccount(name);
   }, []);
 
   /** 月次の入出金明細（日付順）を取得します。 */
@@ -46,8 +68,11 @@ export const useBudget = () => {
   return {
     findDailyHomeBudget,
     findDailyHomeBudgetDetail,
+    updateDailyHomeBudgetDetails,
     findCategory,
     findPaymentAccount,
+    registerPaymentAccount,
+    registerBudgetCategory,
     findMonthlyDetails,
     findMonthlySummary,
     updateMonthlySummarySavingsTarget,

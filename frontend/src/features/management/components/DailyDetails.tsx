@@ -19,7 +19,8 @@ import {
   InfoIcon,
 } from "lucide-react";
 import { useBudget } from "../hooks/use-budget";
-import type { CategoryMst, DailyHomeBudgetDetail } from "../types";
+import type { BudgetCategory, DailyHomeBudgetDetail, PaymentAccount } from "../types";
+import { ExpenseType } from "@/types";
 import {
   Dialog,
   DialogContent,
@@ -49,14 +50,18 @@ export function DailyDetails({
   budgetId,
   baseDate,
   isMonthConfirmed = false,
+  onBudgetUpdated,
 }: {
   budgetId?: number;
   baseDate: string;
   isMonthConfirmed?: boolean;
+  onBudgetUpdated?: () => void | Promise<void>;
 }) {
-  const { findDailyHomeBudgetDetail, findCategory } = useBudget();
+  const { findDailyHomeBudgetDetail, findCategory, findPaymentAccount } =
+    useBudget();
   const [details, setDetails] = useState<DailyHomeBudgetDetail[]>([]);
-  const [categories, setCategories] = useState<CategoryMst[]>([]);
+  const [categories, setCategories] = useState<BudgetCategory[]>([]);
+  const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogChange, setDialogChange] = useState(false);
   const [flowFilter, setFlowFilter] = useState<"all" | "income" | "expense">(
@@ -69,23 +74,35 @@ export function DailyDetails({
   const [priceSort, setPriceSort] = useState<"asc" | "desc">("asc");
 
   useEffect(() => {
+    let cancelled = false;
     void (async () => {
-      const list = await findCategory();
-      setCategories(list);
-      if (budgetId == null) {
-        setDetails([]);
-        setLoading(false);
-      } else {
-        setLoading(true);
-        try {
-          const result = await findDailyHomeBudgetDetail(budgetId);
-          setDetails(result);
-        } finally {
-          setLoading(false);
+      setLoading(true);
+      try {
+        const [cats, accs, detailResult] = await Promise.all([
+          findCategory(),
+          findPaymentAccount(),
+          budgetId != null
+            ? findDailyHomeBudgetDetail(budgetId)
+            : Promise.resolve([] as DailyHomeBudgetDetail[]),
+        ]);
+        if (cancelled) return;
+        setCategories(cats);
+        setAccounts(accs);
+        setDetails(detailResult);
+      } catch {
+        if (!cancelled) {
+          setCategories([]);
+          setAccounts([]);
+          setDetails([]);
         }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     })();
-  }, [findDailyHomeBudgetDetail, findCategory, budgetId]);
+    return () => {
+      cancelled = true;
+    };
+  }, [findDailyHomeBudgetDetail, findCategory, findPaymentAccount, budgetId]);
 
   /** カテゴリIDと名前のマッピングを生成します。 */
   const categoryNameById = useMemo(
@@ -109,8 +126,8 @@ export function DailyDetails({
   // フィルター設定
   const displayDetails = useMemo(() => {
     let rows = details.filter((d) => {
-      if (flowFilter === "income") return !d.expensesFlg;
-      if (flowFilter === "expense") return d.expensesFlg;
+      if (flowFilter === "income") return d.expenseType === ExpenseType.INCOME;
+      if (flowFilter === "expense") return d.expenseType === ExpenseType.EXPENSE;
       return true;
     });
     if (includedCategoryIds !== null) {
@@ -144,11 +161,11 @@ export function DailyDetails({
 
   /** 収入合計 */
   const incomeSum = details
-    .filter((d) => !d.expensesFlg)
+    .filter((d) => d.expenseType === ExpenseType.INCOME)
     .reduce((a, d) => a + d.price, 0);
   /** 支出合計 */
   const expenseSum = details
-    .filter((d) => d.expensesFlg)
+    .filter((d) => d.expenseType === ExpenseType.EXPENSE)
     .reduce((a, d) => a + d.price, 0);
 
   return (
@@ -171,9 +188,12 @@ export function DailyDetails({
               <DailyDetailsChange
                 budgetId={budgetId}
                 details={details}
+                categories={categories}
+                accounts={accounts}
                 updated={async () => {
                   const result = await findDailyHomeBudgetDetail(budgetId);
                   setDetails(result);
+                  await onBudgetUpdated?.();
                   setDialogChange(false);
                 }}
               />
@@ -369,12 +389,12 @@ export function DailyDetails({
                   </div>
                   <span
                     className={
-                      detail.expensesFlg
+                      detail.expenseType === ExpenseType.EXPENSE
                         ? "shrink-0 tabular-nums font-semibold text-red-600 dark:text-red-400"
                         : "shrink-0 tabular-nums font-semibold text-emerald-600 dark:text-emerald-400"
                     }
                   >
-                    {detail.expensesFlg ? "-" : "+"}
+                    {detail.expenseType === ExpenseType.EXPENSE ? "-" : "+"}
                     {detail.price} 円
                   </span>
                 </div>

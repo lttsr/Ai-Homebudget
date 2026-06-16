@@ -33,10 +33,10 @@ export function AppCarrender({
   className?: string;
   budgetDataList?: DailyHomeBudget[];
 }) {
-  const budgetByDate = useMemo(() => {
+  const budgetByBaseDate = useMemo(() => {
     const map = new Map<string, DailyHomeBudget>();
     for (const row of budgetDataList ?? []) {
-      map.set(row.date, row);
+      map.set(row.baseDate, row);
     }
     return map;
   }, [budgetDataList]);
@@ -51,7 +51,7 @@ export function AppCarrender({
   const getDayAmount = useMemo(
     () =>
       (cellDate: Date): ReactNode => {
-        const row = budgetByDate.get(cellDateToRowDateKey(cellDate));
+        const row = budgetByBaseDate.get(cellDateToRowDateKey(cellDate));
         if (row == null) {
           return undefined;
         }
@@ -74,16 +74,18 @@ export function AppCarrender({
           </span>
         );
       },
-    [budgetByDate],
+    [budgetByBaseDate],
   );
 
   const handleSelect = useCallback(
     (date: Date | undefined) => {
       const row =
-        date == null ? undefined : budgetByDate.get(cellDateToRowDateKey(date));
+        date == null
+          ? undefined
+          : budgetByBaseDate.get(cellDateToRowDateKey(date));
       onDayChange(date, row);
     },
-    [budgetByDate, onDayChange],
+    [budgetByBaseDate, onDayChange],
   );
 
   const handleMonthChange = useCallback(

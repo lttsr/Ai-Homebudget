@@ -105,6 +105,18 @@ public interface Repository {
      * @param value     検索値
      * @return 指定されたフィールド名と値に一致した{@link DomainEntity}のリスト
      */
-    <T extends DomainEntity> List<T> findBy(Class<T> clazz, String fieldName, Object value);
+    <T extends DomainEntity> List<T> findListBy(Class<T> clazz, String fieldName, Object value);
 
+    /**
+     * 指定されたフィールド名と値に一致する{@link DomainEntity}を返します。
+     * <p>
+     * 存在しない場合はnullを返します。
+     *
+     * @param <T>       戻り値の型
+     * @param clazz     取得するインスタンスのクラス
+     * @param fieldName 検索対象のフィールド名
+     * @param value     検索値
+     * @return 指定されたフィールド名と値に一致した{@link DomainEntity}
+     */
+    <T extends DomainEntity> T findBy(Class<T> clazz, String fieldName, Object value);
 }

@@ -27,7 +27,13 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useBudget } from "../hooks/use-budget";
-import type { AccountMst, CategoryMst } from "../types";
+import type { PaymentAccount } from "../types";
+
+type BudgetCategory = {
+  categoryId: number;
+  name: string;
+  colorCode: string;
+};
 
 type SettingsSection =
   | "category"
@@ -109,11 +115,6 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-function nextId(list: { categoryId?: number; accountId?: number }[]): number {
-  const ids = list.map((r) => r.categoryId ?? r.accountId ?? 0);
-  return Math.max(0, ...ids) + 1;
-}
-
 function SettingsNav({
   active,
   onSelect,
@@ -185,23 +186,29 @@ function CategorySettingsPanel({
   categories,
   onAdd,
 }: {
-  categories: CategoryMst[];
-  onAdd: (name: string, color: string) => void;
+  categories: BudgetCategory[];
+  onAdd: (name: string, colorCode: string) => Promise<void>;
 }) {
   const [name, setName] = useState("");
-  const [color, setColor] = useState<string>(CATEGORY_COLOR_PRESETS[0]);
+  const [colorCode, setColorCode] = useState<string>(CATEGORY_COLOR_PRESETS[0]);
+  const [adding, setAdding] = useState(false);
 
   const sorted = useMemo(
     () => [...categories].sort((a, b) => a.categoryId - b.categoryId),
     [categories],
   );
 
-  const handleAdd = useCallback(() => {
+  const handleAdd = useCallback(async () => {
     const trimmed = name.trim();
-    if (trimmed === "") return;
-    onAdd(trimmed, color);
-    setName("");
-  }, [name, color, onAdd]);
+    if (trimmed === "" || adding) return;
+    setAdding(true);
+    try {
+      await onAdd(trimmed, colorCode);
+      setName("");
+    } finally {
+      setAdding(false);
+    }
+  }, [name, colorCode, onAdd, adding]);
 
   return (
     <div className="space-y-6">
@@ -229,7 +236,7 @@ function CategorySettingsPanel({
               placeholder="例：日用品"
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleAdd();
+                if (e.key === "Enter") void handleAdd();
               }}
             />
           </div>
@@ -245,20 +252,21 @@ function CategorySettingsPanel({
                 size="icon"
                 className={cn(
                   "rounded-full border-2 p-0 hover:scale-105 hover:bg-transparent",
-                  color === preset
+                  colorCode === preset
                     ? "border-foreground ring-2 ring-ring ring-offset-2"
                     : "border-transparent",
                 )}
                 style={{ backgroundColor: preset }}
                 aria-label={`色 ${preset}`}
-                aria-pressed={color === preset}
-                onClick={() => setColor(preset)}
+                aria-pressed={colorCode === preset}
+                onClick={() => setColorCode(preset)}
               />
             ))}
             <Button
               type="button"
               className="ml-auto shrink-0"
-              onClick={handleAdd}
+              disabled={adding}
+              onClick={() => void handleAdd()}
             >
               <Plus className="size-4" aria-hidden />
               追加
@@ -295,7 +303,7 @@ function CategorySettingsPanel({
                     <TableCell className="pl-4">
                       <span
                         className="inline-block size-4 rounded-full ring-1 ring-border"
-                        style={{ backgroundColor: cat.color }}
+                        style={{ backgroundColor: cat.colorCode }}
                         aria-hidden
                       />
                     </TableCell>
@@ -317,22 +325,28 @@ function PaymentSettingsPanel({
   accounts,
   onAdd,
 }: {
-  accounts: AccountMst[];
-  onAdd: (name: string) => void;
+  accounts: PaymentAccount[];
+  onAdd: (name: string) => Promise<void>;
 }) {
   const [name, setName] = useState("");
+  const [adding, setAdding] = useState(false);
 
   const sorted = useMemo(
     () => [...accounts].sort((a, b) => a.accountId - b.accountId),
     [accounts],
   );
 
-  const handleAdd = useCallback(() => {
+  const handleAdd = useCallback(async () => {
     const trimmed = name.trim();
-    if (trimmed === "") return;
-    onAdd(trimmed);
-    setName("");
-  }, [name, onAdd]);
+    if (trimmed === "" || adding) return;
+    setAdding(true);
+    try {
+      await onAdd(trimmed);
+      setName("");
+    } finally {
+      setAdding(false);
+    }
+  }, [name, onAdd, adding]);
 
   return (
     <div className="space-y-6">
@@ -362,13 +376,18 @@ function PaymentSettingsPanel({
               placeholder="例：PayPay"
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleAdd();
+                if (e.key === "Enter") void handleAdd();
               }}
             />
           </div>
-          <Button type="button" className="shrink-0" onClick={handleAdd}>
+          <Button
+            type="button"
+            className="shrink-0"
+            disabled={adding}
+            onClick={() => void handleAdd()}
+          >
             <Plus className="size-4" aria-hidden />
-            追加
+            {adding ? "追加中…" : "追加"}
           </Button>
         </div>
       </section>
@@ -442,10 +461,15 @@ function PlaceholderPanel({
 }
 
 export function Settings() {
-  const { findCategory, findPaymentAccount } = useBudget();
+  const {
+    findCategory,
+    findPaymentAccount,
+    registerPaymentAccount,
+    registerBudgetCategory,
+  } = useBudget();
   const [section, setSection] = useState<SettingsSection>("category");
-  const [categories, setCategories] = useState<CategoryMst[]>([]);
-  const [accounts, setAccounts] = useState<AccountMst[]>([]);
+  const [categories, setCategories] = useState<BudgetCategory[]>([]);
+  const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [graphDefaultTab, setGraphDefaultTab] = useState<
     "category" | "account" | "expense-daily"
@@ -461,7 +485,7 @@ export function Settings() {
           findPaymentAccount(),
         ]);
         if (!cancelled) {
-          setCategories(cats);
+          setCategories(cats as unknown as BudgetCategory[]);
           setAccounts(accs);
         }
       } catch {
@@ -478,16 +502,27 @@ export function Settings() {
     };
   }, [findCategory, findPaymentAccount]);
 
-  const addCategory = useCallback((name: string, color: string) => {
-    setCategories((prev) => [
-      ...prev,
-      { categoryId: nextId(prev), name, color },
-    ]);
-  }, []);
+  const addCategory = useCallback(
+    async (name: string, colorCode: string) => {
+      const registered = await registerBudgetCategory(name, colorCode);
+      setCategories((prev) =>
+        [...prev, registered as unknown as BudgetCategory].sort(
+          (a, b) => a.categoryId - b.categoryId,
+        ),
+      );
+    },
+    [registerBudgetCategory],
+  );
 
-  const addAccount = useCallback((name: string) => {
-    setAccounts((prev) => [...prev, { accountId: nextId(prev), name }]);
-  }, []);
+  const addAccount = useCallback(
+    async (name: string) => {
+      const registered = await registerPaymentAccount(name);
+      setAccounts((prev) =>
+        [...prev, registered].sort((a, b) => a.accountId - b.accountId),
+      );
+    },
+    [registerPaymentAccount],
+  );
 
   const activeNav = useMemo(
     () =>

@@ -13,10 +13,10 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { TaskStatusType } from "@/types";
+import { TaskStatusType, ExpenseType } from "@/types";
 import { useBudget } from "../hooks/use-budget";
 import type {
-  CategoryMst,
+  BudgetCategory,
   MonthlyBudgetDetailRow,
   MonthlySummary,
 } from "../types";
@@ -36,7 +36,7 @@ export function MonthlyDetails({
   } = useBudget();
   const [monthly, setMonthly] = useState<MonthlySummary | null>(null);
   const [rows, setRows] = useState<MonthlyBudgetDetailRow[]>([]);
-  const [categories, setCategories] = useState<CategoryMst[]>([]);
+  const [categories, setCategories] = useState<BudgetCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [savingsTargetInput, setSavingsTargetInput] = useState("");
   const [savingTarget, setSavingTarget] = useState(false);
@@ -321,12 +321,14 @@ export function MonthlyDetails({
                                 <span
                                   className={cn(
                                     "inline-flex shrink-0 items-center rounded border px-1 py-px text-[10px] font-semibold",
-                                    detail.expensesFlg
+                                    detail.expenseType === ExpenseType.EXPENSE
                                       ? "border-red-200/80 bg-red-500/10 text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
                                       : "border-emerald-200/80 bg-emerald-500/10 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300",
                                   )}
                                 >
-                                  {detail.expensesFlg ? "支出" : "収入"}
+                                  {detail.expenseType === ExpenseType.EXPENSE
+                                    ? "支出"
+                                    : "収入"}
                                 </span>
                                 <p className="truncate text-xs font-medium">
                                   {resolveCategoryName(detail.categoryId)}
@@ -341,12 +343,14 @@ export function MonthlyDetails({
                             <span
                               className={cn(
                                 "shrink-0 tabular-nums text-xs font-semibold",
-                                detail.expensesFlg
+                                detail.expenseType === ExpenseType.EXPENSE
                                   ? "text-red-600 dark:text-red-400"
                                   : "text-emerald-600 dark:text-emerald-400",
                               )}
                             >
-                              {detail.expensesFlg ? "-" : "+"}
+                              {detail.expenseType === ExpenseType.EXPENSE
+                                ? "-"
+                                : "+"}
                               {detail.price.toLocaleString()}
                             </span>
                           </div>

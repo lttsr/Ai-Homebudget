@@ -11,6 +11,9 @@ spring:
 app:
   server:
     base-url: ${SERVER_BASE_URL:http://localhost:8090}
+    cors-allowed-origin-patterns:
+      - ${FRONTEND_ORIGIN:http://localhost:5173}
+      - http://localhost:*
   db:
     url: ${JDBC_URL:jdbc:postgresql://HomeBudgetAI-db:5432/postgres}
     username: ${JDBC_USERNAME:postgres}

@@ -1,6 +1,5 @@
 import {
   useCallback,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -19,10 +18,12 @@ import { cn } from "@/lib/utils";
 import { PlusIcon, TrashIcon } from "lucide-react";
 import { useBudget } from "../hooks/use-budget";
 import type {
-  AccountMst,
-  CategoryMst,
+  PaymentAccount,
+  BudgetCategory,
   DailyHomeBudgetDetail,
+  UpdateDailyHomeBudgetDetail,
 } from "../types";
+import { ExpenseType } from "@/types";
 
 type DraftRow = {
   clientKey: string;
@@ -31,7 +32,7 @@ type DraftRow = {
   categoryId: number;
   accountId: number;
   price: number;
-  expensesFlg: boolean;
+  expenseType: ExpenseType;
   memo?: string;
 };
 
@@ -43,7 +44,7 @@ function rowsFromDetails(list: DailyHomeBudgetDetail[]): DraftRow[] {
     categoryId: d.categoryId,
     accountId: d.accountId,
     price: d.price,
-    expensesFlg: d.expensesFlg,
+    expenseType: d.expenseType,
     memo: d.memo,
   }));
 }
@@ -51,15 +52,17 @@ function rowsFromDetails(list: DailyHomeBudgetDetail[]): DraftRow[] {
 export function DailyDetailsChange({
   budgetId,
   details,
+  categories,
+  accounts,
   updated,
 }: {
   budgetId: number;
   details: DailyHomeBudgetDetail[];
+  categories: BudgetCategory[];
+  accounts: PaymentAccount[];
   updated: () => void | Promise<void>;
 }) {
-  const { findCategory, findPaymentAccount } = useBudget();
-  const [categories, setCategories] = useState<CategoryMst[]>([]);
-  const [accounts, setAccounts] = useState<AccountMst[]>([]);
+  const { updateDailyHomeBudgetDetails } = useBudget();
   const [rows, setRows] = useState<DraftRow[]>(() => rowsFromDetails(details));
   const newKeyRef = useRef(0);
   const pendingScrollKeyRef = useRef<string | null>(null);
@@ -71,21 +74,6 @@ export function DailyDetailsChange({
 
   const defaultCategoryId = categoriesSorted[0]?.categoryId ?? 1;
   const defaultAccountId = accounts[0]?.accountId ?? 1;
-
-  useEffect(() => {
-    void (async () => {
-      try {
-        setCategories(await findCategory());
-      } catch {
-        setCategories([]);
-      }
-      try {
-        setAccounts(await findPaymentAccount());
-      } catch {
-        setAccounts([]);
-      }
-    })();
-  }, [findCategory, findPaymentAccount]);
 
   useLayoutEffect(() => {
     const key = pendingScrollKeyRef.current;
@@ -141,7 +129,7 @@ export function DailyDetailsChange({
         categoryId: defaultCategoryId,
         accountId: defaultAccountId,
         price: 0,
-        expensesFlg: true,
+        expenseType: ExpenseType.EXPENSE,
         memo: undefined,
       },
     ]);
@@ -157,7 +145,16 @@ export function DailyDetailsChange({
   }, [details]);
 
   const handleSave = async () => {
-    // TODO: PATCH 明細API（rows を送信）接続後にサーバーへ反映
+    const payload: UpdateDailyHomeBudgetDetail[] = rows.map((row) => ({
+      ...(row.sourceDetailId != null ? { detailId: row.sourceDetailId } : {}),
+      budgetId,
+      categoryId: row.categoryId,
+      accountId: row.accountId,
+      price: row.price,
+      expenseType: row.expenseType,
+      memo: row.memo,
+    }));
+    await updateDailyHomeBudgetDetails(budgetId, payload);
     await updated();
   };
 
@@ -288,7 +285,7 @@ export function DailyDetailsChange({
                               <span className="flex items-center gap-2">
                                 <span
                                   className="size-2.5 shrink-0 rounded-full ring-1 ring-border"
-                                  style={{ backgroundColor: c.color }}
+                                  style={{ backgroundColor: c.colorCode }}
                                   aria-hidden
                                 />
                                 {c.name}
@@ -393,12 +390,14 @@ export function DailyDetailsChange({
                         type="button"
                         className={cn(
                           "flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all",
-                          !row.expensesFlg
+                          row.expenseType === ExpenseType.INCOME
                             ? "bg-background text-foreground shadow-sm ring-1 ring-border/60"
                             : "text-muted-foreground hover:text-foreground",
                         )}
                         onClick={() =>
-                          updateRow(row.clientKey, { expensesFlg: false })
+                          updateRow(row.clientKey, {
+                            expenseType: ExpenseType.INCOME,
+                          })
                         }
                       >
                         収入
@@ -407,12 +406,14 @@ export function DailyDetailsChange({
                         type="button"
                         className={cn(
                           "flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all",
-                          row.expensesFlg
+                          row.expenseType === ExpenseType.EXPENSE
                             ? "bg-background text-foreground shadow-sm ring-1 ring-border/60"
                             : "text-muted-foreground hover:text-foreground",
                         )}
                         onClick={() =>
-                          updateRow(row.clientKey, { expensesFlg: true })
+                          updateRow(row.clientKey, {
+                            expenseType: ExpenseType.EXPENSE,
+                          })
                         }
                       >
                         支出

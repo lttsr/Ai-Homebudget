@@ -54,6 +54,17 @@ export const ManagementHome = () => {
     [findDailyHomeBudget],
   );
 
+  const refreshBudgetList = useCallback(async () => {
+    if (selectedDate == null) return;
+    const yearMonth = format(selectedDate, "yyyy-MM");
+    const baseDateKey = format(selectedDate, "yyyy-MM-dd");
+    const result = await findDailyHomeBudget(yearMonth);
+    setDataList(result);
+    setSelectedBudget(
+      result.find((row) => row.baseDate.slice(0, 10) === baseDateKey),
+    );
+  }, [selectedDate, findDailyHomeBudget]);
+
   // 日付選択時
   const onSelectDate = useCallback(
     (date: Date | undefined, row: DailyHomeBudget | undefined) => {
@@ -199,6 +210,7 @@ export const ManagementHome = () => {
                   budgetId={selectedBudget?.budgetId}
                   baseDate={format(selectedDate, "yyyy/MM/dd")}
                   isMonthConfirmed={isSelectedMonthConfirmed}
+                  onBudgetUpdated={refreshBudgetList}
                 />
               )}
             </div>

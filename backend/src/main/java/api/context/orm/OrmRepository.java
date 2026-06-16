@@ -100,11 +100,20 @@ public abstract class OrmRepository implements Repository {
 
     /** {@inheritDoc} */
     @Override
-    public <T extends DomainEntity> List<T> findBy(Class<T> clazz, String fieldName, Object value) {
+    public <T extends DomainEntity> List<T> findListBy(Class<T> clazz, String fieldName, Object value) {
         String jpql = String.format("SELECT e FROM %s e WHERE e.%s = :value", clazz.getSimpleName(), fieldName);
         TypedQuery<T> query = em().createQuery(jpql, clazz);
         query.setParameter("value", value);
         return query.getResultList();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public <T extends DomainEntity> T findBy(Class<T> clazz, String fieldName, Object value) {
+        String jpql = String.format("SELECT e FROM %s e WHERE e.%s = :value", clazz.getSimpleName(), fieldName);
+        TypedQuery<T> query = em().createQuery(jpql, clazz);
+        query.setParameter("value", value);
+        return query.getSingleResult();
     }
 
     /**

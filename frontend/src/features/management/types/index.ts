@@ -1,4 +1,4 @@
-import type { TaskStatusType } from "@/types";
+import type { TaskStatusType, ExpenseType } from "@/types";
 
 /** 月次家計簿確定情報 */
 export type MonthlySummary = {
@@ -16,7 +16,7 @@ export type MonthlySummary = {
 /** 日次家計簿データ */
 export type DailyHomeBudget = {
   budgetId: number;
-  date: string; // yyyy-MM-dd
+  baseDate: string; // yyyy-MM-dd
   incomeTotal: number;
   expenseTotal: number;
 };
@@ -28,21 +28,32 @@ export type DailyHomeBudgetDetail = {
   categoryId: number;
   accountId: number;
   price: number;
-  expensesFlg: boolean;
+  expenseType: ExpenseType;
+  memo?: string;
+};
+
+/** 日次家計簿明細の登録・更新リクエスト */
+export type UpdateDailyHomeBudgetDetail = {
+  budgetId: number;
+  detailId?: number;
+  categoryId: number;
+  accountId: number;
+  price: number;
+  expenseType: ExpenseType;
   memo?: string;
 };
 
 /** 口座・決済手段マスタ */
-export type AccountMst = {
+export type PaymentAccount = {
   accountId: number;
   name: string;
 };
 
-/** カテゴリマスタ */
-export type CategoryMst = {
+/** 家計カテゴリ */
+export type BudgetCategory = {
   categoryId: number;
   name: string;
-  color: string;
+  colorCode: string;
 };
 
 /** 月次ダイアログ用：日付付き明細（date: yyyy-MM-dd） */

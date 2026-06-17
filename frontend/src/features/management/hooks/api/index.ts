@@ -8,11 +8,7 @@ import type {
   MonthlySummary,
   UpdateDailyHomeBudgetDetail,
 } from "../../types";
-import {
-  dummyMonthlyDetailRows,
-  dummyMonthlySummary,
-  dummyUpdateMonthlySummarySavingsTarget,
-} from "./dummy-data";
+import { dummyUpdateMonthlySummarySavingsTarget } from "./dummy-data";
 
 /** 指定された年月の全ての家計簿情報を取得します。 */
 export const findDailyHomeBudget = async (
@@ -37,6 +33,39 @@ export const updateDailyHomeBudgetDetails = async (
     `/home-budget/details/${budgetId}/update`,
     details,
   );
+};
+
+/** 月次の全明細を取得します。 */
+export const findMonthlyDetails = async (
+  baseDate: string,
+): Promise<MonthlyBudgetDetailRow[]> => {
+  return await get<MonthlyBudgetDetailRow[]>(`/home-budget/monthly/details`, {
+    baseDate,
+  });
+};
+
+/** 月次サマリーを取得します。 */
+export const findMonthlySummary = async (
+  baseDate: string,
+): Promise<MonthlySummary | null> => {
+  return await get<MonthlySummary | null>(`/home-budget/monthly/summary`, {
+    baseDate,
+  });
+};
+
+/** 月次サマリーの目標貯蓄金額を更新します。 */
+export const updateMonthlySummarySavingsTarget = async (
+  yearMonth: string,
+  savingsTarget: number,
+): Promise<MonthlySummary | null> => {
+  // TODO: API
+  // const response = await axios.patch("/api/monthly-summary/savings-target", {
+  //   baseMonth: yearMonth,
+  //   savingsTarget,
+  // });
+  // return response.data;
+  await Promise.resolve();
+  return dummyUpdateMonthlySummarySavingsTarget(yearMonth, savingsTarget);
 };
 
 /** 家計カテゴリマスタを取得します。 */
@@ -67,45 +96,4 @@ export const registerPaymentAccount = async (
   return await post<PaymentAccount>("/master/payment-account/register", {
     name,
   });
-};
-
-/** 月次の全明細（日付昇順・実API接続時は params: { yearMonth } 想定） */
-export const findMonthlyDetails = async (
-  yearMonth: string,
-): Promise<MonthlyBudgetDetailRow[]> => {
-  // TODO: API
-  // const response = await axios.get("/api/monthly-details", {
-  //   params: { yearMonth },
-  // });
-  // return response.data;
-  await Promise.resolve();
-  return dummyMonthlyDetailRows(yearMonth);
-};
-
-/** 月次サマリーを取得します。 */
-export const findMonthlySummary = async (
-  yearMonth: string,
-): Promise<MonthlySummary | null> => {
-  // TODO: API
-  // const response = await axios.get("/api/monthly-summary", {
-  //   params: { yearMonth },
-  // });
-  // return response.data;
-  await Promise.resolve();
-  return dummyMonthlySummary(yearMonth);
-};
-
-/** 月次サマリーの目標貯蓄金額を更新します。 */
-export const updateMonthlySummarySavingsTarget = async (
-  yearMonth: string,
-  savingsTarget: number,
-): Promise<MonthlySummary | null> => {
-  // TODO: API
-  // const response = await axios.patch("/api/monthly-summary/savings-target", {
-  //   baseMonth: yearMonth,
-  //   savingsTarget,
-  // });
-  // return response.data;
-  await Promise.resolve();
-  return dummyUpdateMonthlySummarySavingsTarget(yearMonth, savingsTarget);
 };

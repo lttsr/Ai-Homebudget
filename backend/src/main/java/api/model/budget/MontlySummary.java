@@ -2,8 +2,10 @@ package api.model.budget;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 
 import api.context.DomainEntity;
+import api.context.orm.OrmRepository;
 import api.model.budget.type.TaskStatusType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -63,4 +65,9 @@ public class MontlySummary implements DomainEntity {
     /** 更新日時 */
     @NotNull
     private LocalDateTime updatedDate;
+
+    // 指定された月度の月次サマリーを取得します。
+    public static MontlySummary findByYearMonth(OrmRepository rep, YearMonth yearMonth) {
+        return rep.findBy(MontlySummary.class, "baseMonth", yearMonth.atDay(1));
+    }
 }

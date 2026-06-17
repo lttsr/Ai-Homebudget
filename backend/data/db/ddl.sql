@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS daily_home_budget_detail;
 DROP TABLE IF EXISTS daily_home_budget;
+DROP TABLE IF EXISTS montly_summary;
 DROP TABLE IF EXISTS payment_account;
 DROP TABLE IF EXISTS budget_category;
 DROP SEQUENCE IF EXISTS daily_home_budget_detail_id_seq;
@@ -39,7 +40,7 @@ CREATE SEQUENCE IF NOT EXISTS daily_home_budget_id_seq;
 
 CREATE TABLE IF NOT EXISTS daily_home_budget (
     budget_id      BIGINT    NOT NULL,
-    base_date    TIMESTAMP NOT NULL,
+    base_date      DATE      NOT NULL,
     income_total   INT       NOT NULL,
     expense_total  INT       NOT NULL,
     registered_date TIMESTAMP NOT NULL,
@@ -68,4 +69,22 @@ CREATE TABLE IF NOT EXISTS daily_home_budget_detail (
 ALTER SEQUENCE daily_home_budget_detail_id_seq OWNED BY daily_home_budget_detail.detail_id;
 
 COMMENT ON COLUMN daily_home_budget_detail.expense_type IS '0:収入(INCOME), 1:支出(EXPENSE)';
+
+-- 月次家計簿確定情報
+CREATE TABLE IF NOT EXISTS montly_summary (
+    base_month        DATE             NOT NULL,
+    status_type       SMALLINT         NOT NULL,
+    income_total      INT              NOT NULL,
+    expense_total     INT              NOT NULL,
+    savings           INT              NOT NULL,
+    savings_target    INT              NOT NULL,
+    achievement_rate  DOUBLE PRECISION NOT NULL,
+    comment           VARCHAR(255),
+    confirmed_date    TIMESTAMP        NOT NULL,
+    registered_date   TIMESTAMP        NOT NULL,
+    updated_date      TIMESTAMP        NOT NULL,
+    CONSTRAINT montly_summary_pkey PRIMARY KEY (base_month)
+);
+
+COMMENT ON COLUMN montly_summary.status_type IS '0:未確定(PENDING), 1:確定(FINISHED)';
 

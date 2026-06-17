@@ -9,10 +9,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import api.context.orm.OrmRepository;
+import api.controller.budget.HomeBudgetController.ResDetalisList;
 import api.model.budget.DailyHomeBudget;
 import api.model.budget.DailyHomeBudgetDetail;
 import api.model.budget.DailyHomeBudgetDetail.DailyHomeBudgetDetailId;
 import api.model.budget.DailyHomeBudgetDetail.RegisterDailyHomeBudgetDetail;
+import api.model.budget.MontlySummary;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -75,5 +77,37 @@ public class DailyHomeBudgetService {
         var details = DailyHomeBudgetDetail.findByBudgetId(rep, budgetId);
         DailyHomeBudget.syncTotals(rep, budgetId, details);
         return details;
+    }
+
+    /**
+     * 指定された月度の家計簿詳細データを全て取得します。
+     *
+     * @param baseDate 基準月 yyyy-MM
+     * @return 家計簿詳細データ
+     */
+    public List<ResDetalisList> getDetailsByYM(YearMonth yearMonth) {
+        return DailyHomeBudget.findByYearMonth(rep, yearMonth).stream()
+                .flatMap(budget -> DailyHomeBudgetDetail.findByBudgetId(rep, budget.getBudgetId()).stream()
+                        .map(detail -> ResDetalisList.builder()
+                                .date(budget.getBaseDate())
+                                .budgetId(budget.getBudgetId())
+                                .detailId(detail.getDetailId())
+                                .categoryId(detail.getCategoryId())
+                                .accountId(detail.getAccountId())
+                                .expenseType(detail.getExpenseType())
+                                .price(detail.getPrice())
+                                .memo(detail.getMemo())
+                                .build()))
+                .toList();
+    }
+
+    /**
+     * 指定された月度の月次サマリーを取得します。
+     *
+     * @param baseDate 基準月 yyyy-MM
+     * @return 月次サマリー
+     */
+    public MontlySummary getMonthlySummary(YearMonth yearMonth) {
+        return MontlySummary.findByYearMonth(rep, yearMonth);
     }
 }

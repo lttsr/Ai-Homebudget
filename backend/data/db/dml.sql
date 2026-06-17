@@ -22,23 +22,3 @@ VALUES
     (10, 'クレジットカード決済', '#0ea5e9', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 SELECT setval('budget_category_id_seq', (SELECT MAX(category_id) FROM budget_category));
-
--- 日次家計簿 初期データ
-INSERT INTO daily_home_budget (budget_id, base_date, income_total, expense_total, registered_date, updated_date)
-VALUES
-    (1, TIMESTAMP '2026-06-01', 300000, 3500, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    (2, TIMESTAMP '2026-06-02', 0, 1300, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-
-SELECT setval('daily_home_budget_id_seq', (SELECT MAX(budget_id) FROM daily_home_budget));
-
--- 日次家計簿詳細 初期データ
-INSERT INTO daily_home_budget_detail (
-    budget_id, detail_id, category_id, account_id, expense_type, price, memo, registered_date, updated_date
-)
-VALUES
-    (1, 1, 1, 1, 1, 3500, '夕食の買い出し', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    (1, 2, 2, 2, 0, 300000, '6月給与', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    (2, 1, 3, 3, 1, 500, '電車代', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    (2, 2, 4, 1, 1, 800, 'モーニング', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-
-SELECT setval('daily_home_budget_detail_id_seq', (SELECT MAX(detail_id) FROM daily_home_budget_detail));

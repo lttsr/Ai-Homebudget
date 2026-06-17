@@ -5,8 +5,11 @@ export const apiRoot = axios.create({
   baseURL: VITE_APP_API_ROOT,
 });
 
-export const get = async <T>(url: string): Promise<T> => {
-  const response = await apiRoot.get<T>(url);
+export const get = async <T>(
+  url: string,
+  params?: Record<string, unknown>,
+): Promise<T> => {
+  const response = await apiRoot.get<T>(url, { params });
   console.log(response.data);
   return response.data;
 };

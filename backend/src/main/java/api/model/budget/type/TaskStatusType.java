@@ -4,7 +4,7 @@ public enum TaskStatusType {
     /** 未確定 */
     PENDING,
     /** 確定 */
-    DETERMINED;
+    FINISHED;
 
     /**
      * 文字列に変換します。
@@ -29,7 +29,7 @@ public enum TaskStatusType {
      *
      * @return boolean
      */
-    public boolean isDetermined() {
-        return this == DETERMINED;
+    public boolean isFinished() {
+        return this == FINISHED;
     }
 }

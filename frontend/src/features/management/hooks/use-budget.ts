@@ -3,20 +3,41 @@ import * as api from "./api";
 import type { UpdateDailyHomeBudgetDetail } from "../types";
 
 export const useBudget = () => {
-  /** 月次家計簿データを取得します。 */
+  /** 指定された年月の全ての家計簿情報を取得します。 */
   const findDailyHomeBudget = useCallback(async (baseDate: string) => {
     return await api.findDailyHomeBudget(baseDate);
   }, []);
 
-  /** 日次家計簿の明細データを取得します。 */
+  /** 指定された家計簿IDの全ての明細データを取得します。 */
   const findDailyHomeBudgetDetail = useCallback(async (budgetId: number) => {
     return await api.findDailyHomeBudgetDetail(budgetId);
   }, []);
 
-  /** 日次家計簿の明細データを追加・更新します。 */
+  /** 日次家計簿の明細データを登録・更新します。 */
   const updateDailyHomeBudgetDetails = useCallback(
     async (budgetId: number, details: UpdateDailyHomeBudgetDetail[]) => {
       return await api.updateDailyHomeBudgetDetails(budgetId, details);
+    },
+    [],
+  );
+
+  /** 月次の入出金明細（日付順）を取得します。 */
+  const findMonthlyDetails = useCallback(async (yearMonth: string) => {
+    return await api.findMonthlyDetails(yearMonth);
+  }, []);
+
+  /** 月次サマリーを取得します。 */
+  const findMonthlySummary = useCallback(async (yearMonth: string) => {
+    return await api.findMonthlySummary(yearMonth);
+  }, []);
+
+  /** 月次サマリーの目標貯蓄金額を更新します。 */
+  const updateMonthlySummarySavingsTarget = useCallback(
+    async (yearMonth: string, savingsTarget: number) => {
+      return await api.updateMonthlySummarySavingsTarget(
+        yearMonth,
+        savingsTarget,
+      );
     },
     [],
   );
@@ -43,27 +64,6 @@ export const useBudget = () => {
   const registerPaymentAccount = useCallback(async (name: string) => {
     return await api.registerPaymentAccount(name);
   }, []);
-
-  /** 月次の入出金明細（日付順）を取得します。 */
-  const findMonthlyDetails = useCallback(async (yearMonth: string) => {
-    return await api.findMonthlyDetails(yearMonth);
-  }, []);
-
-  /** 月次サマリーを取得します。 */
-  const findMonthlySummary = useCallback(async (yearMonth: string) => {
-    return await api.findMonthlySummary(yearMonth);
-  }, []);
-
-  /** 月次サマリーの目標貯蓄金額を更新します。 */
-  const updateMonthlySummarySavingsTarget = useCallback(
-    async (yearMonth: string, savingsTarget: number) => {
-      return await api.updateMonthlySummarySavingsTarget(
-        yearMonth,
-        savingsTarget,
-      );
-    },
-    [],
-  );
 
   return {
     findDailyHomeBudget,

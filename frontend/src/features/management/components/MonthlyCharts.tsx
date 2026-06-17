@@ -5,7 +5,11 @@ import PieGraph, { type PieGraphData } from "@/components/graph/PieGraph";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useBudget } from "../hooks/use-budget";
-import type { PaymentAccount, BudgetCategory, MonthlyBudgetDetailRow } from "../types";
+import type {
+  PaymentAccount,
+  BudgetCategory,
+  MonthlyBudgetDetailRow,
+} from "../types";
 import { ExpenseType } from "@/types";
 
 type ChartTab = "category" | "account" | "expense-daily";
@@ -81,8 +85,7 @@ export function MonthlyCharts({
   onOpenChange: (open: boolean) => void;
   yearMonth: string | null;
 }) {
-  const { findMonthlyDetails, findCategory, findPaymentAccount } =
-    useBudget();
+  const { findMonthlyDetails, findCategory, findPaymentAccount } = useBudget();
   const [tab, setTab] = useState<ChartTab>("category");
   const [rows, setRows] = useState<MonthlyBudgetDetailRow[]>([]);
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
@@ -117,13 +120,7 @@ export function MonthlyCharts({
     return () => {
       cancelled = true;
     };
-  }, [
-    open,
-    yearMonth,
-    findMonthlyDetails,
-    findCategory,
-    findPaymentAccount,
-  ]);
+  }, [open, yearMonth, findMonthlyDetails, findCategory, findPaymentAccount]);
 
   const categoryById = useMemo(
     () => new Map(categories.map((c) => [c.categoryId, c] as const)),
@@ -151,7 +148,7 @@ export function MonthlyCharts({
         return {
           name: cat?.name ?? `カテゴリ #${categoryId}`,
           value,
-          fill: cat?.color,
+          fill: cat?.colorCode,
         };
       })
       .sort((a, b) => Number(b.value) - Number(a.value));

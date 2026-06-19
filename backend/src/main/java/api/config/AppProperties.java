@@ -20,10 +20,10 @@ import lombok.EqualsAndHashCode;
 @Data
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
-
     private ServerProps server;
     private DbProps db;
     private BatchProps batch;
+    private AwsProps aws;
 
     /**
      * Server properties
@@ -72,5 +72,19 @@ public class AppProperties {
         private boolean enabled = false;
         private String cron;
         private String zone = "Asia/Tokyo";
+    }
+
+    /**
+     * AWS properties
+     */
+    @Data
+    public static class AwsProps {
+        private String region;
+        private BedrockProps bedrock = new BedrockProps();
+    }
+
+    @Data
+    public static class BedrockProps {
+        private String modelId;
     }
 }

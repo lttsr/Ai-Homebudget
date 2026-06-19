@@ -37,6 +37,7 @@ dependencies {
   implementation 'software.amazon.awssdk:cognitoidentityprovider:2.40.15'
   annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
   implementation 'software.amazon.awssdk:aws-core'
+  implementation 'software.amazon.awssdk:bedrockruntime:2.40.15'
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
   annotationProcessor "org.projectlombok:lombok"
   compileOnly "org.springframework.boot:spring-boot-configuration-processor"

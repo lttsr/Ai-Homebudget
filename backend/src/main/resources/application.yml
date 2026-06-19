@@ -30,5 +30,6 @@ app:
         cron: '0 0 0 1 * *'
         zone: Asia/Tokyo
   aws:
+    region: ap-northeast-1
     bedrock:
       model-id: anthropic.claude-3-5-sonnet-20240620-v1:0

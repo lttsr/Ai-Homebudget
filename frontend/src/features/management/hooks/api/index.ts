@@ -8,7 +8,6 @@ import type {
   MonthlySummary,
   UpdateDailyHomeBudgetDetail,
 } from "../../types";
-import { dummyUpdateMonthlySummarySavingsTarget } from "./dummy-data";
 
 /** 指定された年月の全ての家計簿情報を取得します。 */
 export const findDailyHomeBudget = async (
@@ -54,18 +53,17 @@ export const findMonthlySummary = async (
 };
 
 /** 月次サマリーの目標貯蓄金額を更新します。 */
-export const updateMonthlySummarySavingsTarget = async (
-  yearMonth: string,
+export const updateMonthlySummary = async (
+  baseDate: string,
   savingsTarget: number,
 ): Promise<MonthlySummary | null> => {
-  // TODO: API
-  // const response = await axios.patch("/api/monthly-summary/savings-target", {
-  //   baseMonth: yearMonth,
-  //   savingsTarget,
-  // });
-  // return response.data;
-  await Promise.resolve();
-  return dummyUpdateMonthlySummarySavingsTarget(yearMonth, savingsTarget);
+  return await post<MonthlySummary | null>(
+    `/home-budget/monthly/summary/update`,
+    {
+      baseDate,
+      savingsTarget,
+    },
+  );
 };
 
 /** 家計カテゴリマスタを取得します。 */

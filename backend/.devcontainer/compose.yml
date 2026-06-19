@@ -18,6 +18,8 @@ services:
     working_dir: /home/vscode/workspace
   HomeBudgetAI-db:
     image: postgres:17
+    ports:
+      - "5432:5432"
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
@@ -26,6 +28,6 @@ services:
     volumes:
       - HomeBudgetAI-db-data:/var/lib/postgresql/data
       - ../data/db:/docker-entrypoint-initdb.d
-volumes:  
+volumes:
   gradle-cache:
   HomeBudgetAI-db-data:

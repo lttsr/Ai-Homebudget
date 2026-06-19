@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import api.context.DomainEntity;
-import api.context.RequestDto;
 import api.context.orm.OrmRepository;
+import api.controller.master.PaymentAccountController.RegisterPaymentAccountRequest;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -52,21 +52,11 @@ public class PaymentAccount implements DomainEntity {
     }
 
     // 口座・決済手段を登録します。
-    public static PaymentAccount register(OrmRepository rep, RegisterPaymentAccount param) {
-        return rep.save(param.create());
-    }
-
-    // 口座・決済手段DTO
-    public static record RegisterPaymentAccount(
-            @NotNull String name) implements RequestDto {
-
-        // エンティティを生成します。
-        public PaymentAccount create() {
-            return PaymentAccount.builder()
-                    .name(this.name)
-                    .registeredDate(LocalDateTime.now())
-                    .updatedDate(LocalDateTime.now())
-                    .build();
-        }
+    public static PaymentAccount register(OrmRepository rep, RegisterPaymentAccountRequest param) {
+        return rep.save(PaymentAccount.builder()
+                .name(param.name())
+                .registeredDate(LocalDateTime.now())
+                .updatedDate(LocalDateTime.now())
+                .build());
     }
 }

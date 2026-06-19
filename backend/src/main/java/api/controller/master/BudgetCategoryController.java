@@ -8,10 +8,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import api.context.RequestDto;
 import api.model.master.BudgetCategory;
-import api.model.master.BudgetCategory.RegisterBudgetCategory;
 import api.usecase.master.BudgetCategoryService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -37,7 +38,15 @@ public class BudgetCategoryController {
      * @return カテゴリマスタ
      */
     @PostMapping("/register")
-    public BudgetCategory registerBudgetCategory(@Valid @RequestBody RegisterBudgetCategory param) {
+    public BudgetCategory registerBudgetCategory(@Valid @RequestBody RegisterBudgetCategoryRequest param) {
         return service.registerBudgetCategory(param);
+    }
+
+    /**
+     * リクエストDTO
+     */
+    public record RegisterBudgetCategoryRequest(
+            @NotNull String name,
+            @NotNull String colorCode) implements RequestDto {
     }
 }

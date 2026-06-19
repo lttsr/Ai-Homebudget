@@ -12,11 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import api.context.RequestDto;
 import api.context.ResponseDto;
 import api.model.budget.DailyHomeBudget;
 import api.model.budget.DailyHomeBudgetDetail;
-import api.model.budget.DailyHomeBudgetDetail.RegisterDailyHomeBudgetDetail;
-import api.model.budget.MontlySummary;
 import api.model.budget.type.ExpensesType;
 import api.usecase.budget.DailyHomeBudgetService;
 import jakarta.validation.constraints.NotNull;
@@ -61,8 +60,20 @@ public class HomeBudgetController {
      */
     @PostMapping("/details/{budgetId}/update")
     public List<DailyHomeBudgetDetail> updateDailyHomeBudgetDetails(@PathVariable Long budgetId,
-            @RequestBody List<RegisterDailyHomeBudgetDetail> details) {
+            @RequestBody List<UpdateDetailRequest> details) {
         return service.updateDailyHomeBudgetDetails(budgetId, details);
+    }
+
+    /**
+     * リクエストDTO
+     */
+    public record UpdateDetailRequest(
+            Long detailId,
+            @NotNull Long categoryId,
+            @NotNull Long accountId,
+            @NotNull ExpensesType expenseType,
+            @NotNull int price,
+            String memo) implements RequestDto {
     }
 
     /**
@@ -88,12 +99,5 @@ public class HomeBudgetController {
             @NotNull ExpensesType expenseType,
             @NotNull int price,
             String memo) implements ResponseDto {
-    }
-
-    /** 月次サマリーを取得します。 */
-    @GetMapping("/monthly/summary")
-    public MontlySummary getMonthlySummary(@RequestParam String baseDate) {
-        YearMonth yearMonth = YearMonth.parse(baseDate);
-        return service.getMonthlySummary(yearMonth);
     }
 }

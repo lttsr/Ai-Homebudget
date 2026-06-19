@@ -1,6 +1,8 @@
 package api.config;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -21,6 +23,7 @@ public class AppProperties {
 
     private ServerProps server;
     private DbProps db;
+    private BatchProps batch;
 
     /**
      * Server properties
@@ -54,5 +57,20 @@ public class AppProperties {
         public JpaTransactionManager transactionManager(final EntityManagerFactory emf) {
             return jpa.transactionManager(emf);
         }
+    }
+
+    /**
+     * Batch properties
+     */
+    @Data
+    public static class BatchProps {
+        private Map<String, BatchSettings> jobs = new HashMap<>();
+    }
+
+    @Data
+    public static class BatchSettings {
+        private boolean enabled = false;
+        private String cron;
+        private String zone = "Asia/Tokyo";
     }
 }

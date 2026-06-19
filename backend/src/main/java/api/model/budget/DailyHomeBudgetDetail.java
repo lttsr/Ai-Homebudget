@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 
 import api.context.DomainEntity;
-import api.context.RequestDto;
 import api.context.orm.OrmRepository;
 import api.model.budget.DailyHomeBudgetDetail.DailyHomeBudgetDetailId;
 import api.model.budget.type.ExpensesType;
@@ -108,8 +107,13 @@ public class DailyHomeBudgetDetail implements DomainEntity {
     }
 
     // 日次の家計簿詳細データを登録します。
-    public static DailyHomeBudgetDetail register(OrmRepository rep, RegisterDailyHomeBudgetDetail param) {
+    public static DailyHomeBudgetDetail register(OrmRepository rep, RegisterDetailParam param) {
         return rep.save(param.create());
+    }
+
+    // 日次の家計簿詳細データを更新します。
+    public DailyHomeBudgetDetail update(OrmRepository rep, RegisterDetailParam param) {
+        return rep.update(param.applyTo(this));
     }
 
     // 日次の家計簿詳細データを削除します。
@@ -118,16 +122,17 @@ public class DailyHomeBudgetDetail implements DomainEntity {
     }
 
     /**
-     * 日次の家計簿詳細データを登録するためのDTO。
+     * 更新パラメタ
      */
-    public static record RegisterDailyHomeBudgetDetail(
+    @Builder
+    public static record RegisterDetailParam(
             @NotNull Long budgetId,
             Long detailId,
             @NotNull Long categoryId,
             @NotNull Long accountId,
             @NotNull ExpensesType expenseType,
             @NotNull int price,
-            String memo) implements RequestDto {
+            String memo) {
 
         // 新規登録を行います。
         public DailyHomeBudgetDetail create() {
@@ -141,6 +146,17 @@ public class DailyHomeBudgetDetail implements DomainEntity {
                     .registeredDate(LocalDateTime.now())
                     .updatedDate(LocalDateTime.now())
                     .build();
+        }
+
+        // 更新を行います。
+        public DailyHomeBudgetDetail applyTo(DailyHomeBudgetDetail detail) {
+            detail.setCategoryId(categoryId);
+            detail.setAccountId(accountId);
+            detail.setExpenseType(expenseType);
+            detail.setPrice(price);
+            detail.setMemo(memo);
+            detail.setUpdatedDate(LocalDateTime.now());
+            return detail;
         }
     }
 

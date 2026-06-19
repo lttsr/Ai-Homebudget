@@ -6,7 +6,6 @@ import java.time.YearMonth;
 import java.util.List;
 
 import api.context.DomainEntity;
-import api.context.RequestDto;
 import api.context.orm.OrmRepository;
 import api.model.budget.type.ExpensesType;
 import jakarta.persistence.Entity;
@@ -87,11 +86,11 @@ public class DailyHomeBudget implements DomainEntity {
     }
 
     /**
-     * 日次の家計簿データを更新するためのDTO。
+     * 更新パラメタ
      */
     public static record UpdateDailyHomeBudget(
             @NotNull int incomeTotal,
-            @NotNull int expenseTotal) implements RequestDto {
+            @NotNull int expenseTotal) {
 
         // 明細から収入合計と支出合計を再計算します。
         public static UpdateDailyHomeBudget calculatePrice(List<DailyHomeBudgetDetail> details) {
@@ -113,5 +112,35 @@ public class DailyHomeBudget implements DomainEntity {
             return budget;
         }
 
+    }
+
+    // 指定された月度のtotalIncomeを取得します。
+    public static int getTotalIncome(OrmRepository rep, YearMonth yearMonth) {
+        return findByYearMonth(rep, yearMonth).stream()
+                .mapToInt(DailyHomeBudget::getIncomeTotal)
+                .sum();
+    }
+
+    // 指定された月度のtotalExpenseを取得します。
+    public static int getTotalExpense(OrmRepository rep, YearMonth yearMonth) {
+        return findByYearMonth(rep, yearMonth).stream()
+                .mapToInt(DailyHomeBudget::getExpenseTotal)
+                .sum();
+    }
+
+    // 指定された月度の家計簿データを一括登録します。
+    public static void registerAll(OrmRepository rep, YearMonth yearMonth) {
+        if (!findByYearMonth(rep, yearMonth).isEmpty()) {
+            return; // 既にあればスキップ
+        }
+        for (int day = 1; day <= yearMonth.lengthOfMonth(); day++) {
+            rep.save(DailyHomeBudget.builder()
+                    .baseDate(yearMonth.atDay(day))
+                    .incomeTotal(0)
+                    .expenseTotal(0)
+                    .registeredDate(LocalDateTime.now())
+                    .updatedDate(LocalDateTime.now())
+                    .build());
+        }
     }
 }

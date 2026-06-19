@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import api.context.orm.OrmRepository;
+import api.controller.master.PaymentAccountController.RegisterPaymentAccountRequest;
 import api.model.master.PaymentAccount;
-import api.model.master.PaymentAccount.RegisterPaymentAccount;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -31,7 +31,7 @@ public class PaymentAccountService {
      * @return 口座・決済手段
      */
     @Transactional
-    public PaymentAccount registerPaymentAccount(RegisterPaymentAccount param) {
+    public PaymentAccount registerPaymentAccount(RegisterPaymentAccountRequest param) {
         return PaymentAccount.register(rep, param);
     }
 }

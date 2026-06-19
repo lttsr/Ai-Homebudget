@@ -34,10 +34,7 @@ export const useBudget = () => {
   /** 月次サマリーの目標貯蓄金額を更新します。 */
   const updateMonthlySummarySavingsTarget = useCallback(
     async (yearMonth: string, savingsTarget: number) => {
-      return await api.updateMonthlySummarySavingsTarget(
-        yearMonth,
-        savingsTarget,
-      );
+      return await api.updateMonthlySummary(yearMonth, savingsTarget);
     },
     [],
   );

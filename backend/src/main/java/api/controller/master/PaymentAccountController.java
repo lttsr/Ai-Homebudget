@@ -8,10 +8,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import api.context.RequestDto;
 import api.model.master.PaymentAccount;
-import api.model.master.PaymentAccount.RegisterPaymentAccount;
 import api.usecase.master.PaymentAccountService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -38,7 +39,14 @@ public class PaymentAccountController {
      * @return 口座・決済手段
      */
     @PostMapping("/register")
-    public PaymentAccount registerPaymentAccount(@Valid @RequestBody RegisterPaymentAccount param) {
+    public PaymentAccount registerPaymentAccount(@Valid @RequestBody RegisterPaymentAccountRequest param) {
         return service.registerPaymentAccount(param);
+    }
+
+    /**
+     * リクエストDTO
+     */
+    public record RegisterPaymentAccountRequest(
+            @NotNull String name) implements RequestDto {
     }
 }

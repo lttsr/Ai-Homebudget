@@ -23,3 +23,12 @@ app:
         - api.context
         - api.model
       hibernate.ddl-auto: none
+  batch:
+    jobs:
+      monthly-update:
+        enabled: true
+        cron: '0 0 0 1 * *'
+        zone: Asia/Tokyo
+  aws:
+    bedrock:
+      model-id: anthropic.claude-3-5-sonnet-20240620-v1:0

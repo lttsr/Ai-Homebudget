@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import api.context.DomainEntity;
-import api.context.RequestDto;
 import api.context.orm.OrmRepository;
+import api.controller.master.BudgetCategoryController.RegisterBudgetCategoryRequest;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -55,21 +55,12 @@ public class BudgetCategory implements DomainEntity {
     }
 
     // カテゴリマスタを登録します。
-    public static BudgetCategory register(OrmRepository rep, RegisterBudgetCategory param) {
-        return rep.save(param.create());
-    }
-
-    // カテゴリマスタDTO
-    public static record RegisterBudgetCategory(
-            @NotNull String name,
-            @NotNull String colorCode) implements RequestDto {
-        public BudgetCategory create() {
-            return BudgetCategory.builder()
-                    .name(this.name)
-                    .colorCode(this.colorCode)
-                    .registeredDate(LocalDateTime.now())
-                    .updatedDate(LocalDateTime.now())
-                    .build();
-        }
+    public static BudgetCategory register(OrmRepository rep, RegisterBudgetCategoryRequest param) {
+        return rep.save(BudgetCategory.builder()
+                .name(param.name())
+                .colorCode(param.colorCode())
+                .registeredDate(LocalDateTime.now())
+                .updatedDate(LocalDateTime.now())
+                .build());
     }
 }

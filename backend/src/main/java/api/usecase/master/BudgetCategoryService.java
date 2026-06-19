@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import api.context.orm.OrmRepository;
+import api.controller.master.BudgetCategoryController.RegisterBudgetCategoryRequest;
 import api.model.master.BudgetCategory;
-import api.model.master.BudgetCategory.RegisterBudgetCategory;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -31,7 +31,7 @@ public class BudgetCategoryService {
      * @return カテゴリマスタ
      */
     @Transactional
-    public BudgetCategory registerBudgetCategory(RegisterBudgetCategory param) {
+    public BudgetCategory registerBudgetCategory(RegisterBudgetCategoryRequest param) {
         return BudgetCategory.register(rep, param);
     }
 }

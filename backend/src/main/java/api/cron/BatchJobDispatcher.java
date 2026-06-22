@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
- * ジョブ名に応じて {@link BatchJob} 実装を呼び出す共通ディスパッチャ。
+ * ジョブ名に応じて {@link BatchJob} 実装を呼び出す共通実行クラス。
  */
 @Component
 public class BatchJobDispatcher {

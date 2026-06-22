@@ -33,3 +33,6 @@ app:
     region: ap-northeast-1
     bedrock:
       model-id: anthropic.claude-3-5-sonnet-20240620-v1:0
+
+  export:
+    report-dir: ${EXPORT_BASE_DIR:./storage/report}

@@ -1,5 +1,7 @@
 package api.config;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,7 @@ public class AppProperties {
     private DbProps db;
     private BatchProps batch;
     private AwsProps aws;
+    private ExportProps export = new ExportProps();
 
     /**
      * Server properties
@@ -86,5 +89,17 @@ public class AppProperties {
     @Data
     public static class BedrockProps {
         private String modelId;
+    }
+
+    /**
+     * エクスポート設定
+     */
+    @Data
+    public static class ExportProps {
+        private String reportDir = "./storage/report";
+    }
+
+    public Path getReportDir() {
+        return Paths.get(export.getReportDir());
     }
 }

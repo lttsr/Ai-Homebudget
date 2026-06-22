@@ -13,14 +13,13 @@ import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock;
 import software.amazon.awssdk.services.bedrockruntime.model.ConversationRole;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse;
-import software.amazon.awssdk.services.bedrockruntime.model.DocumentBlock;
 import software.amazon.awssdk.services.bedrockruntime.model.Message;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class BedrockService {
-    private final BedrockRuntimeClient syncClient;
+    private final BedrockRuntimeClient client;
     private final BedrockProps bedrockProps;
 
     /**
@@ -30,16 +29,18 @@ public class BedrockService {
      * @param documents 添付ドキュメント
      * @return 応答テキスト
      */
-    public String ask(String prompt, DocumentBlock... documents) {
+    public String ask(String prompt, String... documents) {
         List<ContentBlock> contents = new ArrayList<>();
         contents.add(ContentBlock.fromText(prompt));
 
-        for (DocumentBlock document : documents) {
-            if (document != null) {
-                contents.add(ContentBlock.fromDocument(document));
+        if (documents != null) {
+            for (String d : documents) {
+                if (d != null && !d.isBlank()) {
+                    contents.add(ContentBlock.fromText(d));
+                }
             }
         }
-
+        // リクエストデータを作成
         var request = ConverseRequest.builder()
                 .modelId(bedrockProps.getModelId())
                 .messages(Message.builder()
@@ -47,9 +48,8 @@ public class BedrockService {
                         .content(contents)
                         .build())
                 .build();
-
         try {
-            ConverseResponse response = syncClient.converse(request);
+            ConverseResponse response = client.converse(request);
             return response.output().message().content().get(0).text();
         } catch (Exception e) {
             log.error("Bedrockの呼び出しに失敗しました", e);

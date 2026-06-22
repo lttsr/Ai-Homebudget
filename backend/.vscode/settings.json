@@ -1,3 +1,13 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.import.gradle.enabled": true,
+    "java.test.gradle.enabled": true,
+    "java.gradle.buildServer.enabled": "on",
+    "java.test.editor.enableShortcuts": true,
+    "java.test.config": [
+        {
+            "name": "default",
+            "workingDirectory": "${workspaceFolder}"
+        }
+    ]
 }

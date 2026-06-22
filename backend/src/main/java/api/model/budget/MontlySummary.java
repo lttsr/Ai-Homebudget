@@ -123,7 +123,7 @@ public class MontlySummary implements DomainEntity {
     }
 
     // バッチ 月次サマリの確定処理を行います。
-    public static MontlySummary confirm(OrmRepository rep, YearMonth preMonth, String comment) {
+    public static MontlySummary confirm(OrmRepository rep, YearMonth preMonth) {
         var current = findByYearMonth(rep, preMonth);
         int totalIncome = DailyHomeBudget.getTotalIncome(rep, preMonth);
         int totalExpense = DailyHomeBudget.getTotalExpense(rep, preMonth);
@@ -136,8 +136,15 @@ public class MontlySummary implements DomainEntity {
                 .savings(totalSavings)
                 .savingsTarget(current.getSavingsTarget())
                 .achievementRate(achievementRate)
-                .comment(comment)
+                .comment(current.getComment())
                 .confirmedDate(LocalDateTime.now())
                 .build());
+    }
+
+    // コメントを更新します。
+    public MontlySummary updateComment(OrmRepository rep, String comment) {
+        this.setComment(comment);
+        this.setUpdatedDate(LocalDateTime.now());
+        return rep.update(this);
     }
 }

@@ -26,7 +26,7 @@ public class AppProperties {
     private DbProps db;
     private BatchProps batch;
     private AwsProps aws;
-    private ExportProps export = new ExportProps();
+    private StorageProps storage = new StorageProps();
 
     /**
      * Server properties
@@ -88,18 +88,20 @@ public class AppProperties {
 
     @Data
     public static class BedrockProps {
-        private String modelId;
+        private String agentId;
+        private String agentAliasId;
     }
 
     /**
-     * エクスポート設定
+     * ストレージ設定
      */
     @Data
-    public static class ExportProps {
+    public static class StorageProps {
+        // レポートディレクトリ
         private String reportDir = "./storage/report";
     }
 
     public Path getReportDir() {
-        return Paths.get(export.getReportDir());
+        return Paths.get(storage.getReportDir());
     }
 }

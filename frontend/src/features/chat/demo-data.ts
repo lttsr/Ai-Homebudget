@@ -28,18 +28,15 @@ export const DEMO_ROOMS: ChatRooms[] = [
   },
 ];
 
-type DemoMessage = Pick<
-  ChatMessages,
-  "messageId" | "roomId" | "message" | "role"
->;
-
-export const DEMO_MESSAGES_BY_ROOM: Record<string, DemoMessage[]> = {
+export const DEMO_MESSAGES_BY_ROOM: Record<string, ChatMessages[]> = {
   "room-food": [
     {
       messageId: "msg-food-1",
       roomId: "room-food",
       role: RoleType.USER,
       message: "今月の食費、どこを見直せばいいか教えて",
+      registeredDate: "2026-06-08T10:00:00",
+      updatedDate: "2026-06-08T10:00:00",
     },
     {
       messageId: "msg-food-2",
@@ -47,6 +44,8 @@ export const DEMO_MESSAGES_BY_ROOM: Record<string, DemoMessage[]> = {
       role: RoleType.AGENT,
       message:
         "家計相談モード（UIのみ）です。まずは直近1ヶ月の食費（外食・食材・弁当など）の合算と、大きい支出トップ3を一緒に洗い出すと、打ち手が選びやすいです。",
+      registeredDate: "2026-06-08T10:00:30",
+      updatedDate: "2026-06-08T10:00:30",
     },
   ],
   "room-savings": [
@@ -55,6 +54,8 @@ export const DEMO_MESSAGES_BY_ROOM: Record<string, DemoMessage[]> = {
       roomId: "room-savings",
       role: RoleType.USER,
       message: "毎月5万円貯めたいんだけど、現実的なプランはある？",
+      registeredDate: "2026-06-07T15:00:00",
+      updatedDate: "2026-06-07T15:00:00",
     },
     {
       messageId: "msg-savings-2",
@@ -62,6 +63,8 @@ export const DEMO_MESSAGES_BY_ROOM: Record<string, DemoMessage[]> = {
       role: RoleType.AGENT,
       message:
         "収入と固定費を確認したうえで、変動費の上限を決めると達成しやすくなります。まずは直近3ヶ月の可処分所得の平均を把握しましょう。",
+      registeredDate: "2026-06-07T15:01:00",
+      updatedDate: "2026-06-07T15:01:00",
     },
   ],
   "room-fixed": [
@@ -70,6 +73,8 @@ export const DEMO_MESSAGES_BY_ROOM: Record<string, DemoMessage[]> = {
       roomId: "room-fixed",
       role: RoleType.USER,
       message: "通信費とサブスク、どれを優先して見直すべき？",
+      registeredDate: "2026-06-08T08:30:00",
+      updatedDate: "2026-06-08T08:30:00",
     },
     {
       messageId: "msg-fixed-2",
@@ -77,6 +82,8 @@ export const DEMO_MESSAGES_BY_ROOM: Record<string, DemoMessage[]> = {
       role: RoleType.AGENT,
       message:
         "月額の高い順に並べ、利用頻度の低いものから解約候補にすると効率的です。通信費はプラン変更だけで数千円下がることもあります。",
+      registeredDate: "2026-06-08T08:31:00",
+      updatedDate: "2026-06-08T08:31:00",
     },
   ],
 };

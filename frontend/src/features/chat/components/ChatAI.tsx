@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, Plus, SendHorizontal, Trash2 } from "lucide-react";
 import {
   Accordion,
@@ -23,104 +23,56 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { RoleType } from "@/types";
-import { DEMO_MESSAGES_BY_ROOM, DEMO_ROOMS } from "../demo-data";
+import { deleteChatRoom, findChatMessages, findChatRooms } from "../hooks/api";
 import type { ChatMessages, ChatRooms } from "../types";
-
-type DemoMessage = Pick<
-  ChatMessages,
-  "messageId" | "roomId" | "message" | "role"
->;
 
 export function ChatAI() {
   const [draft, setDraft] = useState("");
-  const [rooms, setRooms] = useState<ChatRooms[]>(() => [...DEMO_ROOMS]);
-  const [messagesByRoom, setMessagesByRoom] = useState<
-    Record<string, DemoMessage[]>
-  >(() => ({ ...DEMO_MESSAGES_BY_ROOM }));
-  const [selectedRoomId, setSelectedRoomId] = useState(
-    DEMO_ROOMS[0]?.roomId ?? "",
-  );
-  const [deleteTargetRoom, setDeleteTargetRoom] = useState<ChatRooms | null>(
-    null,
-  );
-  const [isDeletingRoom, setIsDeletingRoom] = useState(false);
+  const [rooms, setRooms] = useState<ChatRooms[]>([]);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ChatMessages[]>([]);
+  const [deleteRoomId, setDeleteRoomId] = useState<string | null>(null);
 
-  const selectedRoom = useMemo(
-    () => rooms.find((room) => room.roomId === selectedRoomId),
-    [rooms, selectedRoomId],
-  );
+  useEffect(() => {
+    void findChatRooms().then((list) => {
+      setRooms(list);
+      setSelectedRoomId((prev) => prev ?? list[0]?.roomId ?? null);
+    });
+  }, []);
 
-  const messages = useMemo(
-    () => messagesByRoom[selectedRoomId] ?? [],
-    [messagesByRoom, selectedRoomId],
-  );
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      if (selectedRoomId == null) {
+        setMessages([]);
+        return;
+      }
+      const list = await findChatMessages(selectedRoomId);
+      if (!cancelled) {
+        setMessages(list);
+      }
+    })();
 
-  const handleCreateChat = useCallback(() => {
-    const now = new Date().toISOString();
-    const roomId = `room-${Date.now()}`;
-
-    const newRoom: ChatRooms = {
-      roomId,
-      agentSessionId: `session-${Date.now()}`,
-      roomName: "新しいチャット",
-      description: "家計の悩みを自由に相談できます",
-      registeredDate: now,
-      updatedDate: now,
+    return () => {
+      cancelled = true;
     };
+  }, [selectedRoomId]);
 
-    // TODO: POST /chat/rooms を呼び出す
-    setRooms((prev) => [newRoom, ...prev]);
-    setMessagesByRoom((prev) => ({
-      ...prev,
-      [roomId]: [],
-    }));
-    setSelectedRoomId(roomId);
-    setDraft("");
-  }, []);
-
-  const openDeleteDialog = useCallback((room: ChatRooms) => {
-    setDeleteTargetRoom(room);
-  }, []);
-
-  const closeDeleteDialog = useCallback(() => {
-    if (isDeletingRoom) {
-      return;
-    }
-    setDeleteTargetRoom(null);
-  }, [isDeletingRoom]);
-
-  const handleDeleteRoom = useCallback(async () => {
-    if (deleteTargetRoom == null) {
+  const handleDeleteRoom = async () => {
+    if (deleteRoomId == null) {
       return;
     }
 
-    const roomId = deleteTargetRoom.roomId;
-    setIsDeletingRoom(true);
+    const targetId = deleteRoomId;
 
-    try {
-      // TODO: DELETE /chat/rooms/{roomId} を呼び出す
-      await Promise.resolve();
+    await deleteChatRoom(targetId);
+    setRooms(await findChatRooms());
 
-      setRooms((prev) => {
-        const nextRooms = prev.filter((room) => room.roomId !== roomId);
-        setSelectedRoomId((currentRoomId) => {
-          if (currentRoomId !== roomId) {
-            return currentRoomId;
-          }
-          return nextRooms[0]?.roomId ?? "";
-        });
-        return nextRooms;
-      });
-      setMessagesByRoom((prev) => {
-        const next = { ...prev };
-        delete next[roomId];
-        return next;
-      });
-      setDeleteTargetRoom(null);
-    } finally {
-      setIsDeletingRoom(false);
+    if (selectedRoomId === targetId) {
+      setSelectedRoomId(null);
     }
-  }, [deleteTargetRoom]);
+    setDeleteRoomId(null);
+  };
 
   return (
     <div
@@ -128,10 +80,10 @@ export function ChatAI() {
       className="flex h-full min-h-0 w-full flex-1 flex-col bg-slate-50/80"
     >
       <Dialog
-        open={deleteTargetRoom != null}
+        open={deleteRoomId != null}
         onOpenChange={(open) => {
           if (!open) {
-            closeDeleteDialog();
+            setDeleteRoomId(null);
           }
         }}
       >
@@ -151,26 +103,32 @@ export function ChatAI() {
                 削除したルームの会話履歴は復元できません。
               </DialogDescription>
             </DialogHeader>
-            {deleteTargetRoom ? (
-              <div className="mt-5 rounded-xl border border-border/70 bg-muted/35 px-4 py-3 text-left shadow-sm">
-                <p className="truncate text-sm font-medium text-foreground">
-                  {deleteTargetRoom.roomName}
-                </p>
-                {deleteTargetRoom.description ? (
-                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                    {deleteTargetRoom.description}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
+            {deleteRoomId != null
+              ? rooms
+                  .filter((item) => item.roomId === deleteRoomId)
+                  .map((item) => (
+                    <div
+                      key={item.roomId}
+                      className="mt-5 rounded-xl border border-border/70 bg-muted/35 px-4 py-3 text-left shadow-sm"
+                    >
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {item.roomName}
+                      </p>
+                      {item.description ? (
+                        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                          {item.description}
+                        </p>
+                      ) : null}
+                    </div>
+                  ))
+              : null}
           </div>
           <div className="grid grid-cols-2 gap-2 border-t border-border/50 bg-muted/15 px-4 py-4">
             <Button
               type="button"
               variant="outline"
               className="h-10 rounded-lg shadow-none"
-              onClick={closeDeleteDialog}
-              disabled={isDeletingRoom}
+              onClick={() => setDeleteRoomId(null)}
             >
               キャンセル
             </Button>
@@ -179,24 +137,35 @@ export function ChatAI() {
               variant="destructive"
               className="h-10 rounded-lg"
               onClick={() => void handleDeleteRoom()}
-              disabled={isDeletingRoom}
             >
-              {isDeletingRoom ? "削除中…" : "削除する"}
+              削除する
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
       <header
         id="chat-ai-header"
         className="sticky top-0 z-10 flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border/50 bg-slate-50/95 px-3 backdrop-blur-sm"
       >
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold leading-tight text-foreground">
-            {selectedRoom?.roomName ?? "家計相談"}
+            {selectedRoomId == null
+              ? "新しいチャット"
+              : (rooms.find((item) => item.roomId === selectedRoomId)
+                  ?.roomName ?? "家計相談")}
           </p>
-          {selectedRoom?.description ? (
+          {selectedRoomId == null ? (
             <p className="truncate text-xs text-muted-foreground">
-              {selectedRoom.description}
+              未保存 · 送信時にルームが作成されます
+            </p>
+          ) : rooms.find((item) => item.roomId === selectedRoomId)
+              ?.description ? (
+            <p className="truncate text-xs text-muted-foreground">
+              {
+                rooms.find((item) => item.roomId === selectedRoomId)
+                  ?.description
+              }
             </p>
           ) : null}
         </div>
@@ -221,7 +190,8 @@ export function ChatAI() {
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-                  handleCreateChat();
+                  setSelectedRoomId(null);
+                  setDraft("");
                 }}
               >
                 <Plus className="size-4" aria-hidden />
@@ -253,12 +223,12 @@ export function ChatAI() {
                         ルームがありません
                       </p>
                     ) : (
-                      rooms.map((room) => {
-                        const isSelected = room.roomId === selectedRoomId;
+                      rooms.map((item) => {
+                        const isSelected = item.roomId === selectedRoomId;
 
                         return (
                           <div
-                            key={room.roomId}
+                            key={item.roomId}
                             className={cn(
                               "flex items-stretch gap-1 rounded-lg border border-transparent p-0.5",
                               isSelected && "border-border/60 bg-accent/30",
@@ -266,7 +236,7 @@ export function ChatAI() {
                           >
                             <DropdownMenuItem
                               className="min-w-0 flex-1 cursor-pointer items-start gap-3 rounded-md py-2.5 pl-2.5 pr-2 focus:bg-transparent"
-                              onSelect={() => setSelectedRoomId(room.roomId)}
+                              onSelect={() => setSelectedRoomId(item.roomId)}
                             >
                               <span
                                 className={cn(
@@ -283,10 +253,10 @@ export function ChatAI() {
                               </span>
                               <span className="min-w-0 flex-1 text-left">
                                 <span className="block truncate text-sm font-medium leading-snug">
-                                  {room.roomName}
+                                  {item.roomName}
                                 </span>
                                 <span className="mt-1 block truncate text-xs leading-snug text-muted-foreground">
-                                  {room.description}
+                                  {item.description}
                                 </span>
                               </span>
                             </DropdownMenuItem>
@@ -295,12 +265,12 @@ export function ChatAI() {
                               variant="ghost"
                               size="icon-sm"
                               className="my-1 mr-1 shrink-0 self-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                              aria-label={`${room.roomName}を削除`}
+                              aria-label={`${item.roomName}を削除`}
                               title="ルームを削除"
                               onClick={(event) => {
                                 event.preventDefault();
                                 event.stopPropagation();
-                                openDeleteDialog(room);
+                                setDeleteRoomId(item.roomId);
                               }}
                             >
                               <Trash2 className="size-4" aria-hidden />
@@ -326,8 +296,8 @@ export function ChatAI() {
         <ul className="mx-auto flex max-w-2xl flex-col gap-3">
           {messages.length === 0 ? (
             <li className="py-16 text-center text-sm text-muted-foreground">
-              {rooms.length === 0
-                ? "ルームがありません。上の「新しいチャット」から作成してください。"
+              {selectedRoomId == null
+                ? "メッセージを入力して会話を始めましょう。"
                 : "メッセージはまだありません。"}
             </li>
           ) : null}
@@ -373,13 +343,8 @@ export function ChatAI() {
               name="chat_ai_message"
               rows={1}
               value={draft}
-              disabled={selectedRoom == null}
               onChange={(event) => setDraft(event.target.value)}
-              placeholder={
-                selectedRoom == null
-                  ? "ルームを選択してください…"
-                  : "家計の悩みを自由に書いてください…"
-              }
+              placeholder="家計の悩みを自由に書いてください…"
               className={cn(
                 "min-h-11 w-full resize-none rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm leading-snug",
                 "placeholder:text-muted-foreground",
@@ -392,8 +357,12 @@ export function ChatAI() {
             type="submit"
             className="h-11 shrink-0 gap-1.5 self-end"
             size="default"
-            disabled={selectedRoom == null}
-            title="送信（バックエンド未接続のため画面のみ）"
+            disabled={draft.trim() === ""}
+            title={
+              selectedRoomId == null
+                ? "送信（初回送信時にルーム作成 · バックエンド未接続）"
+                : "送信（バックエンド未接続のため画面のみ）"
+            }
           >
             送信
             <SendHorizontal className="size-4" aria-hidden />

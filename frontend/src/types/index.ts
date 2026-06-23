@@ -14,3 +14,11 @@ export const ExpenseType = {
   EXPENSE: "EXPENSE",
 } as const;
 export type ExpenseType = (typeof ExpenseType)[keyof typeof ExpenseType];
+
+export const RoleType = {
+  /** ユーザー */
+  USER: "USER",
+  /** エージェント */
+  AGENT: "AGENT",
+} as const;
+export type RoleType = (typeof RoleType)[keyof typeof RoleType];

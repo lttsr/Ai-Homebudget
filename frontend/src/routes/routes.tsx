@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AppSidebar } from "@/components/layout/sidebar";
-import { AskAI } from "@/features/ask/components/Ask-AI";
+import { ChatAI } from "@/features/chat/components/ChatAI.tsx";
 import { ManagementHome } from "@/features/management/components/Management";
 
 type RouteItem = {
@@ -31,10 +31,10 @@ const LAYOUT_ROUTES: RouteItem[] = [
     end: true,
   },
   {
-    path: "/ask-ai",
+    path: "/chat",
     label: "家計相談",
     icon: MessageCircle,
-    element: <AskAI />,
+    element: <ChatAI />,
   },
   {
     path: "/management",
